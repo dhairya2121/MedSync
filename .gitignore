@@ -1,0 +1,23 @@
+# Gradle
+*.iml
+.gradle
+/local.properties
+gradle.properties
+
+# IDE
+/.idea
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+
+# Build output
+/build
+/app/build
+/captures
+
+# Firebase (keep private)
+google-services.json
+
+# Keystore (never push this)
+*.jks
+*.keystore
