@@ -11,6 +11,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MedSync">
+
+        <activity
+            android:name=".activities.SplashActivity"
+            android:theme="@style/Theme.App.Starting"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.dashboard.CareTakerDashboard"
             android:exported="false" />
@@ -23,15 +33,6 @@
         <activity
             android:name=".activities.dashboard.DoctorDashboard"
             android:exported="false" />
-        <activity
-            android:name=".activities.SplashActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <activity android:name=".activities.RoleSelectionActivity"
             android:exported="false" />
         <activity android:name=".activities.LoginActivity" android:exported="false" />

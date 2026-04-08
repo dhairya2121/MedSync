@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F7FA"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Who are You?"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:textColor="#2C3E50"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="24dp"/>
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:alignmentMode="alignMargins">
+
+        <!-- Receptionist: Blue -->
+        <LinearLayout
+            android:id="@+id/btnReceptionist"
+            style="@style/roleBoxStyle"
+            android:background="@drawable/rounded_role_button"
+            android:backgroundTint="#3498DB">
+            <ImageView android:src="@drawable/ic_receptionist" style="@style/iconStyle"/>
+            <TextView android:text="Receptionist" style="@style/textStyle"/>
+        </LinearLayout>
+
+        <!-- Doctor: Green -->
+        <LinearLayout android:id="@+id/btnDoctor"
+            style="@style/roleBoxStyle"
+            android:background="@drawable/rounded_role_button"
+            android:backgroundTint="#2ECC71">
+            <ImageView android:src="@drawable/ic_doctor" style="@style/iconStyle"/>
+            <TextView android:text="Doctor" style="@style/textStyle"/>
+        </LinearLayout>
+
+        <!-- Assistant: Orange -->
+        <LinearLayout android:id="@+id/btnAssistant"
+            style="@style/roleBoxStyle"
+            android:background="@drawable/rounded_role_button"
+            android:backgroundTint="#E67E22">
+            <ImageView android:src="@drawable/ic_assistant" style="@style/iconStyle"/>
+            <TextView android:text="Assistant" style="@style/textStyle"/>
+        </LinearLayout>
+
+        <!-- Patient: Purple -->
+        <LinearLayout android:id="@+id/btnPatient"
+            style="@style/roleBoxStyle"
+            android:background="@drawable/rounded_role_button"
+            android:backgroundTint="#9B59B6">
+            <ImageView android:src="@drawable/ic_patient" style="@style/iconStyle"/>
+            <TextView android:text="Patient" style="@style/textStyle"/>
+        </LinearLayout>
+
+        <!-- Caretaker: Teal -->
+        <LinearLayout android:id="@+id/btnCaretaker"
+            style="@style/roleBoxStyle"
+            android:layout_columnSpan="1"
+            android:background="@drawable/rounded_role_button"
+            android:backgroundTint="#E91E63">
+            <ImageView android:src="@drawable/ic_caretaker" style="@style/iconStyle"/>
+            <TextView android:text="Care Taker" style="@style/textStyle"/>
+        </LinearLayout>
+
+    </GridLayout>
+</LinearLayout>

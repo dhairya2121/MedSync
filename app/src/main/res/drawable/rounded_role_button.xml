@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- This sets the base color to white, we will tint it in the layout -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- Adjust the radius here (e.g., 16dp for subtle, 24dp for very rounded) -->
+    <corners android:radius="16dp" />
+</shape>

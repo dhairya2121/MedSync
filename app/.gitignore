@@ -1,1 +1,37 @@
-/build
+gitignore
+# --- Android Studio / IntelliJ IDEA ---
+.idea/
+*.iml
+.gradle/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+cmake-build-*/
+.navigation/
+
+# --- Build Output ---
+# This ignores the build folder in every module
+**/build/
+
+# --- Keystores (SECURITY: Never push these) ---
+*.jks
+*.keystore
+*.p12
+
+# --- Google Services (Firebase) ---
+# If you want to keep your project private, you can ignore this.
+# If it's a public repo, it's safer to keep this file out.
+# google-services.json
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+
+# --- Log files ---
+*.log
+
+# --- Local Project Files ---
+# Ignore the local configuration for the Gradle wrapper
+.gradle-wrapper.properties
+*.hprof

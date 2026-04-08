@@ -1,5 +1,6 @@
 package com.example.medsync.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,6 +9,7 @@ import android.os.Looper;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
@@ -21,31 +23,36 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+@SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);
 
+        checkUserStatus();
+    }
+
+    private void checkUserStatus() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (user != null) {
-                // Already logged in — fetch role and redirect
-                redirectByRole(user.getUid());
-            } else {
-                startActivity(new Intent(this, RoleSelectionActivity.class));
-                finish();
-            }
-        }, 2000);
+        if (user != null) {
+            redirectByRole(user.getUid());
+        } else {
+            startActivity(new Intent(this, RoleSelectionActivity.class));
+            finish();
+        }
     }
 
     private void redirectByRole(String uid) {
         FirebaseFirestore.getInstance().collection("users").document(uid)
                 .get().addOnSuccessListener(doc -> {
                     String role = doc.getString("role");
-                    Intent intent = getDashboardIntent(role);
-                    startActivity(intent);
+                    startActivity(getDashboardIntent(role));
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    startActivity(new Intent(this, RoleSelectionActivity.class));
                     finish();
                 });
     }
