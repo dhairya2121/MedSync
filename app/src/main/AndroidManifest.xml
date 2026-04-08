@@ -32,10 +32,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.RoleSelectionActivity" />
-        <activity android:name=".activities.LoginActivity" />
-        <activity android:name=".activities.RegisterActivity" />
-        <activity android:name=".activities.dashboard.ReceptionistDashboard" />
+        <activity android:name=".activities.RoleSelectionActivity"
+            android:exported="false" />
+        <activity android:name=".activities.LoginActivity" android:exported="false" />
+        <activity android:name=".activities.RegisterActivity" android:exported="false" />
+        <activity android:name=".activities.dashboard.ReceptionistDashboard" android:exported="false" />
     </application>
 
 </manifest>
