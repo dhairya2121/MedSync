@@ -10,7 +10,7 @@
         <!-- Background color of the splash screen -->
         <item name="windowSplashScreenBackground">@color/white</item>
         <!-- The icon in the center (Vector drawable) -->
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo_large_foreground</item>
         <!-- The theme to switch to after the splash is done -->
         <item name="postSplashScreenTheme">@style/Theme.MedSync</item>
     </style>

@@ -7,7 +7,7 @@
     android:background="#F5F7FA"
     android:fillViewport="true"
     android:id="@+id/main"
-    tools:context=".activities.LoginActivity">
+    tools:context=".activities.SignupActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,17 +21,39 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:src="@drawable/ic_logo_large_foreground"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="16dp"
             />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Login"
+            android:text="Create Account"
             android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="#2C3E50"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="An initiative towards your healthcare"
+            android:textColor="#7F8C8D"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Name Field -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Full Name"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Email Field -->
         <com.google.android.material.textfield.TextInputLayout
@@ -65,12 +87,28 @@
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
-
-        <!-- Login Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/loginBtn"
+        <!-- Confirm Password Field -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
-            android:text="Login"
+            android:layout_height="wrap_content"
+            android:hint="Confirm Password"
+            android:id="@+id/tlConfirmPass"
+            app:errorEnabled="true"
+            android:layout_marginBottom="24dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etConfirmPass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- SignUp Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/signupBtn"
+            android:layout_width="match_parent"
+            android:text="Sign Up"
             app:iconGravity="textStart"
             app:iconSize="20dp"
             android:layout_height="wrap_content"
@@ -78,13 +116,13 @@
             app:cornerRadius="12dp"
             android:backgroundTint="#009771" />
 
-        <!-- SignUp Link -->
+        <!-- Login Link -->
         <TextView
-            android:id="@+id/tvSignupLink"
+            android:id="@+id/tvLoginLink"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="New User? SignUp"
+            android:text="Already a user? Login"
             android:textColor="#8bee06"
             android:textStyle="bold"
             android:padding="8dp"/>
