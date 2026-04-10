@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.example.medsync.R;
+import com.example.medsync.utils.ViewUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
@@ -37,7 +38,6 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // Apply padding so content isn't hidden behind the status/nav bars
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
@@ -52,7 +52,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String email=emailEt.getText().toString();
                 String pass=passEt.getText().toString();
-                setLoading(true, loginBtn);
+                ViewUtils.setLoading(LoginActivity.this,true,loginBtn,"Verifying...","Login");
                 mAuth.signInWithEmailAndPassword(email, pass)
                         .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
                             @Override
@@ -65,7 +65,7 @@ public class LoginActivity extends AppCompatActivity {
                                 } else {
                                     Toast.makeText(LoginActivity.this, "Authentication failed.",
                                             Toast.LENGTH_SHORT).show();
-                                    setLoading(false, loginBtn);
+                                    ViewUtils.setLoading(LoginActivity.this,false, loginBtn,"","Login");
                                 }
                             }
                         });
@@ -76,8 +76,8 @@ public class LoginActivity extends AppCompatActivity {
         signupLinkBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent signupIntent=new Intent(LoginActivity.this, SignupActivity.class);
-                startActivity(signupIntent);
+                Intent roleSelectionIntent=new Intent(LoginActivity.this, RoleSelectionActivity.class);
+                startActivity(roleSelectionIntent);
                 finish();
             }
         });
@@ -85,34 +85,16 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null){
             Toast.makeText(LoginActivity.this, "Already Signed In", Toast.LENGTH_SHORT).show();
 //            mAuth.signOut();
-//            Intent i=new Intent(LoginActivity.this, Main.class);
+//            Intent i=new Intent(LoginActivity.this, .class);
 //            startActivity(i);redirect to role-based dashboard
             finish();
 
         }
     }
-private void setLoading(boolean isLoading, MaterialButton btn) {
-    if (isLoading) {
-        CircularProgressDrawable progressDrawable = new CircularProgressDrawable(LoginActivity.this);
-        progressDrawable.setStrokeWidth(5f);
-        progressDrawable.setCenterRadius(20f); // Reduced slightly to fit better in the button
-        progressDrawable.setColorSchemeColors(Color.WHITE);
-        progressDrawable.start();
-        btn.setIconTint(null);
-        btn.setIcon(progressDrawable);
-        btn.setText("Verifying...");
-        btn.setEnabled(false);
-    } else {
-        btn.setIcon(null);
-        btn.setText("Login");
-        btn.setEnabled(true);
-    }
-}
 
 
 }

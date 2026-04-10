@@ -20,6 +20,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.medsync.R;
+import com.example.medsync.utils.ViewUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
@@ -28,8 +29,13 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SignupActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
@@ -45,6 +51,8 @@ public class SignupActivity extends AppCompatActivity {
             return insets;
         });
         mAuth=FirebaseAuth.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String role=getIntent().getStringExtra("role");
 
         MaterialButton signupBtn = findViewById(R.id.signupBtn);
         EditText nameEt=findViewById(R.id.etName);
@@ -61,34 +69,17 @@ public class SignupActivity extends AppCompatActivity {
                 String confirmPass=confirmPassEt.getText().toString();
                 TextInputLayout passLayout = findViewById(R.id.tlPass);
                 TextInputLayout confirmPassLayout=findViewById(R.id.tlConfirmPass);
-
+                if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
+                    Toast.makeText(SignupActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if (!pass.equals(confirmPass)) {
                     confirmPassLayout.setError("Password do not match");
                     confirmPassEt.requestFocus();
                 } else {
                     confirmPassLayout.setError(null);
-                    setLoading(true, signupBtn);
-                    mAuth.createUserWithEmailAndPassword(email, pass)
-                            .addOnCompleteListener(SignupActivity.this, new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                    if (task.isSuccessful()) {
-                                        // Sign in success, update UI with the signed-in user's information
-                                        FirebaseUser user = mAuth.getCurrentUser();
-                                        Toast.makeText(SignupActivity.this, "Signup successful.",
-                                                Toast.LENGTH_SHORT).show();
-
-//                                        startActivity(main); start role-based dashboard.
-
-                                        finish();
-                                    } else {
-                                        // If sign in fails, display a message to the user.
-                                         Toast.makeText(SignupActivity.this, "Signup failed.",
-                                                Toast.LENGTH_SHORT).show();
-                                         setLoading(false, signupBtn);
-                                    }
-                                }
-                            });
+                    ViewUtils.setLoading(SignupActivity.this,true,signupBtn,"Creating Account...","Sign Up");
+                    signupUser(signupBtn,name,email,pass,role,db);
                 }
             }
         });
@@ -103,22 +94,45 @@ public class SignupActivity extends AppCompatActivity {
             }
         });
     }
-    private void setLoading(boolean isLoading, MaterialButton btn) {
-        if (isLoading) {
-            CircularProgressDrawable progressDrawable = new CircularProgressDrawable(SignupActivity.this);
-            progressDrawable.setStrokeWidth(5f);
-            progressDrawable.setCenterRadius(20f); // Reduced slightly to fit better in the button
-            progressDrawable.setColorSchemeColors(Color.WHITE);
-            progressDrawable.start();
-            btn.setIconTint(null);
-            btn.setIcon(progressDrawable);
-            btn.setText("Please wait...");
-            btn.setEnabled(false);
-        } else {
-            btn.setIcon(null);
-            btn.setText("Sign Up");
-            btn.setEnabled(true);
-        }
+    public void signupUser(MaterialButton signupBtn,String name, String email, String pass,String role,FirebaseFirestore db){
+        mAuth.createUserWithEmailAndPassword(email, pass)
+                .addOnCompleteListener(SignupActivity.this, signupTask -> {
+                    if (signupTask.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user == null) {
+                            Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        String uid = user.getUid();
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("role", role);
+                        db.collection("users").document(uid).set(userMap)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "User added to Firestore");
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Firestore error creating user", e);
+                                });
+                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(name)
+                                .build();
+                        user.updateProfile(profileUpdates)
+                                .addOnCompleteListener(profileTask -> {
+                                    ViewUtils.setLoading(SignupActivity.this,false,signupBtn,"","Sign Up");
+                                    if (profileTask.isSuccessful()) {
+                                        Toast.makeText(SignupActivity.this, "Account Created!", Toast.LENGTH_SHORT).show();
+//                                                    Intent intent = new Intent(SignupActivity.this, MainActivity.class);
+//                                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clears backstack
+//                                                    startActivity(intent);
+                                        finish();
+                                    }
+                                });
+                    } else {
+                        ViewUtils.setLoading(SignupActivity.this,false,signupBtn,"","Sign Up");
+                        String error = signupTask.getException() != null ? signupTask.getException().getMessage() : "Signup Failed";
+                        Toast.makeText(SignupActivity.this, error, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
 }
