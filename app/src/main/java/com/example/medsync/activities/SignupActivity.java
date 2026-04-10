@@ -20,6 +20,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.medsync.R;
+import com.example.medsync.activities.dashboard.AssistantDashboard;
+import com.example.medsync.activities.dashboard.DoctorDashboard;
+import com.example.medsync.activities.dashboard.PatientDashboard;
+import com.example.medsync.activities.dashboard.ReceptionistDashboard;
 import com.example.medsync.utils.ViewUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -37,102 +41,134 @@ import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 import java.util.HashMap;
 import java.util.Map;
 
+// ... (keep existing imports)
+
 public class SignupActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_signup);
+
+        // Handle Insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // Apply padding so content isn't hidden behind the status/nav bars
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        mAuth=FirebaseAuth.getInstance();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String role=getIntent().getStringExtra("role");
+
+        mAuth = FirebaseAuth.getInstance();
+        String role = getIntent().getStringExtra("role");
 
         MaterialButton signupBtn = findViewById(R.id.signupBtn);
-        EditText nameEt=findViewById(R.id.etName);
-        EditText emailEt=findViewById(R.id.etEmail);
-        EditText passEt=findViewById(R.id.etPass);
-        EditText confirmPassEt=findViewById(R.id.etConfirmPass);
+        EditText nameEt = findViewById(R.id.etName);
+        EditText emailEt = findViewById(R.id.etEmail);
+        EditText passEt = findViewById(R.id.etPass);
+        EditText confirmPassEt = findViewById(R.id.etConfirmPass);
 
-        signupBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name=nameEt.getText().toString();
-                String email=emailEt.getText().toString();
-                String pass=passEt.getText().toString();
-                String confirmPass=confirmPassEt.getText().toString();
-                TextInputLayout passLayout = findViewById(R.id.tlPass);
-                TextInputLayout confirmPassLayout=findViewById(R.id.tlConfirmPass);
-                if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
-                    Toast.makeText(SignupActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (!pass.equals(confirmPass)) {
-                    confirmPassLayout.setError("Password do not match");
-                    confirmPassEt.requestFocus();
-                } else {
-                    confirmPassLayout.setError(null);
-                    ViewUtils.setLoading(SignupActivity.this,true,signupBtn,"Creating Account...","Sign Up");
-                    signupUser(signupBtn,name,email,pass,role,db);
-                }
+        signupBtn.setOnClickListener(v -> {
+            String name = nameEt.getText().toString().trim();
+            String email = emailEt.getText().toString().trim();
+            String pass = passEt.getText().toString().trim();
+            String confirmPass = confirmPassEt.getText().toString().trim();
+
+            TextInputLayout confirmPassLayout = findViewById(R.id.tlConfirmPass);
+
+            if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
+                Toast.makeText(SignupActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (role == null) {
+                Toast.makeText(SignupActivity.this, "Error: Role missing", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!pass.equals(confirmPass)) {
+                confirmPassLayout.setError("Passwords do not match");
+                confirmPassEt.requestFocus();
+            } else {
+                confirmPassLayout.setError(null);
+                ViewUtils.setLoading(SignupActivity.this, true, signupBtn, "Creating Account...", "Sign Up");
+                signupUser(signupBtn, name, email, pass, role);
             }
         });
 
-        TextView loginLinkBtn=findViewById(R.id.tvLoginLink);
-        loginLinkBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent loginIntent=new Intent(SignupActivity.this, LoginActivity.class);
-                startActivity(loginIntent);
-                finish();
-            }
+        findViewById(R.id.tvLoginLink).setOnClickListener(v -> {
+            startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+            finish();
         });
     }
-    public void signupUser(MaterialButton signupBtn,String name, String email, String pass,String role,FirebaseFirestore db){
+
+    public void signupUser(MaterialButton signupBtn, String name, String email, String pass, String role) {
         mAuth.createUserWithEmailAndPassword(email, pass)
-                .addOnCompleteListener(SignupActivity.this, signupTask -> {
+                .addOnCompleteListener(this, signupTask -> {
                     if (signupTask.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-                        if (user == null) {
-                            Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                        String uid = user.getUid();
-                        Map<String, Object> userMap = new HashMap<>();
-                        userMap.put("role", role);
-                        db.collection("users").document(uid).set(userMap)
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "User added to Firestore");
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Firestore error creating user", e);
-                                });
+                        if (user == null) return;
+
+                        // 1. Update Profile (Name)
                         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                .setDisplayName(name)
-                                .build();
-                        user.updateProfile(profileUpdates)
-                                .addOnCompleteListener(profileTask -> {
-                                    ViewUtils.setLoading(SignupActivity.this,false,signupBtn,"","Sign Up");
-                                    if (profileTask.isSuccessful()) {
+                                .setDisplayName(name).build();
+
+                        user.updateProfile(profileUpdates).addOnCompleteListener(profileTask -> {
+                            // 2. Save Role to Firestore (Wait for success before redirecting)
+                            Map<String, Object> userMap = new HashMap<>();
+                            userMap.put("role", role);
+                            userMap.put("name", name); // Also save name to DB for easy access
+
+                            db.collection("users").document(user.getUid()).set(userMap)
+                                    .addOnSuccessListener(aVoid -> {
+                                        ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
                                         Toast.makeText(SignupActivity.this, "Account Created!", Toast.LENGTH_SHORT).show();
-//                                                    Intent intent = new Intent(SignupActivity.this, MainActivity.class);
-//                                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clears backstack
-//                                                    startActivity(intent);
-                                        finish();
-                                    }
-                                });
+                                        // 3. NOW it is safe to redirect
+                                        redirectToRoleBasedDashboard(user);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
+                                        Toast.makeText(SignupActivity.this, "Database Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        });
                     } else {
-                        ViewUtils.setLoading(SignupActivity.this,false,signupBtn,"","Sign Up");
+                        ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
                         String error = signupTask.getException() != null ? signupTask.getException().getMessage() : "Signup Failed";
                         Toast.makeText(SignupActivity.this, error, Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
+    public void redirectToRoleBasedDashboard(FirebaseUser user) {
+        if (user == null) return;
+
+        db.collection("users").document(user.getUid()).get()
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        String role = document.getString("role");
+                        Class<?> targetActivity = null;
+
+                        if (role != null) {
+                            switch (role) {
+                                case "P": targetActivity = PatientDashboard.class; break;
+                                case "D": targetActivity = DoctorDashboard.class; break;
+                                case "R": targetActivity = ReceptionistDashboard.class; break;
+                                case "A": targetActivity = AssistantDashboard.class; break;
+                            }
+                        }
+
+                        if (targetActivity != null) {
+                            Intent intent = new Intent(SignupActivity.this, targetActivity);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Toast.makeText(this, "Unknown role assigned.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "User profile not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching role", e));
+    }
 }
