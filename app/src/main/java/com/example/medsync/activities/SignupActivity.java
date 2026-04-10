@@ -125,7 +125,7 @@ public class SignupActivity extends AppCompatActivity {
                                         ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
                                         Toast.makeText(SignupActivity.this, "Account Created!", Toast.LENGTH_SHORT).show();
                                         // 3. NOW it is safe to redirect
-                                        redirectToRoleBasedDashboard(user);
+                                        ViewUtils.redirectToRoleBasedDashboard(SignupActivity.this,user);
                                     })
                                     .addOnFailureListener(e -> {
                                         ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
@@ -140,35 +140,4 @@ public class SignupActivity extends AppCompatActivity {
                 });
     }
 
-    public void redirectToRoleBasedDashboard(FirebaseUser user) {
-        if (user == null) return;
-
-        db.collection("users").document(user.getUid()).get()
-                .addOnSuccessListener(document -> {
-                    if (document.exists()) {
-                        String role = document.getString("role");
-                        Class<?> targetActivity = null;
-
-                        if (role != null) {
-                            switch (role) {
-                                case "P": targetActivity = PatientDashboard.class; break;
-                                case "D": targetActivity = DoctorDashboard.class; break;
-                                case "R": targetActivity = ReceptionistDashboard.class; break;
-                                case "A": targetActivity = AssistantDashboard.class; break;
-                            }
-                        }
-
-                        if (targetActivity != null) {
-                            Intent intent = new Intent(SignupActivity.this, targetActivity);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Toast.makeText(this, "Unknown role assigned.", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(this, "User profile not found.", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Error fetching role", e));
-    }
 }

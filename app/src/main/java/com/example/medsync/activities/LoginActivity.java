@@ -42,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         mAuth = FirebaseAuth.getInstance();
-
+//        mAuth.signOut(); //for debugging
         MaterialButton loginBtn = findViewById(R.id.loginBtn);
         EditText emailEt = findViewById(R.id.etEmail);
         EditText passEt = findViewById(R.id.etPass);
@@ -64,7 +64,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
                             Toast.makeText(LoginActivity.this, "Logged In Successfully!", Toast.LENGTH_SHORT).show();
-                            redirectToRoleBasedDashboard(user);
+                            ViewUtils.redirectToRoleBasedDashboard(LoginActivity.this, user);
                         } else {
                             ViewUtils.setLoading(LoginActivity.this, false, loginBtn, "", "Login");
                             String error = task.getException() != null ? task.getException().getMessage() : "Authentication failed.";
@@ -79,48 +79,13 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    public void redirectToRoleBasedDashboard(FirebaseUser user) {
-        if (user == null) return;
-
-        db.collection("users").document(user.getUid()).get()
-                .addOnSuccessListener(document -> {
-                    if (document.exists()) {
-                        String role = document.getString("role");
-                        Class<?> targetActivity = null;
-
-                        if (role != null) {
-                            switch (role) {
-                                case "P": targetActivity = PatientDashboard.class; break;
-                                case "D": targetActivity = DoctorDashboard.class; break;
-                                case "R": targetActivity = ReceptionistDashboard.class; break;
-                                case "A": targetActivity = AssistantDashboard.class; break;
-                            }
-                        }
-
-                        if (targetActivity != null) {
-                            Intent intent = new Intent(LoginActivity.this, targetActivity);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            // If role is in DB but doesn't match P, D, R, or A
-                            Toast.makeText(this, "Unknown role: " + role, Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(this, "Profile not found in database.", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting user document", e);
-                    Toast.makeText(this, "Failed to fetch user data.", Toast.LENGTH_SHORT).show();
-                });
-    }
-
     @Override
     public void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            redirectToRoleBasedDashboard(currentUser);
+
+            ViewUtils.redirectToRoleBasedDashboard(LoginActivity.this,currentUser);
         }
     }
 }
