@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="@drawable/bg_input_card"
+    android:padding="16dp">
+
+    <ImageView
+        android:id="@+id/icon_start"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@drawable/ic_filled_user"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#333333" />
+
+    <EditText
+        android:id="@+id/edit_text_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@android:color/transparent"
+        android:cursorVisible="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:fontFamily="sans-serif-medium"
+        android:hint="User Name"
+        android:inputType="textPersonName"
+        android:minHeight="40dp"
+        android:text="User Name"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/container_action"
+        app:layout_constraintStart_toEndOf="@id/icon_start"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/container_action"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/btn_edit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="4dp"
+            android:src="@drawable/ic_edit"
+            android:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_input_card"
+            android:padding="6dp"
+            android:backgroundTint="@color/light_green"
+            android:src="@drawable/ic_checked"
+            android:visibility="gone"
+            app:tint="@color/white" />
+
+        <ProgressBar
+            android:id="@+id/progress_saving"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="true"
+            android:padding="4dp"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/icon_error"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_filled_exclamation"
+            android:visibility="gone"
+            app:tint="#FF5252" />
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

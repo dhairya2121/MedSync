@@ -15,8 +15,7 @@ public class Room {
     public Room(){}
     public Room(String type, boolean isOccupied, String patient_id, String hospital_id) {
         this.type = type;
-        this.isOccupied = isOccupied;
-        this.patient_id = patient_id;
+        this.isOccupied = false;
         int passkey = new Random().nextInt(9000) + 1000;
         this.passkey = String.valueOf(passkey);
     }

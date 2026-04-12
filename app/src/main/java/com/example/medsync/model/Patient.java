@@ -5,7 +5,7 @@ public class Patient {
     public String assistant_id;
     public String hospital_id;
 
-    public boolean isAdmitted;
+    public boolean isAdmitted=false;
     public String admittedOn;
     public String dischargeOn;
 

@@ -3,22 +3,11 @@ package com.example.medsync.activities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.example.medsync.R;
-import com.example.medsync.activities.dashboard.AssistantDashboard;
-import com.example.medsync.activities.dashboard.CareTakerDashboard;
-import com.example.medsync.activities.dashboard.DoctorDashboard;
-import com.example.medsync.activities.dashboard.PatientDashboard;
-import com.example.medsync.activities.dashboard.ReceptionistDashboard;
+import com.example.medsync.activities.receptionist.Dashboard;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -60,11 +49,11 @@ public class SplashActivity extends AppCompatActivity {
     private Intent getDashboardIntent(String role) {
         if (role == null) return new Intent(this, RoleSelectionActivity.class);
         switch (role) {
-            case "doctor":       return new Intent(this, DoctorDashboard.class);
-            case "assistant":    return new Intent(this, AssistantDashboard.class);
-            case "patient":      return new Intent(this, PatientDashboard.class);
-            case "caretaker":    return new Intent(this, CareTakerDashboard.class);
-            default:             return new Intent(this, ReceptionistDashboard.class);
+            case "doctor":       return new Intent(this, com.example.medsync.activities.doctor.Dashboard.class);
+            case "assistant":    return new Intent(this, com.example.medsync.activities.assistant.Dashboard.class);
+            case "patient":      return new Intent(this, com.example.medsync.activities.patient.Dashboard.class);
+            case "caretaker":    return new Intent(this, com.example.medsync.activities.careTaker.Dashboard.class);
+            default:             return new Intent(this, Dashboard.class);
         }
     }
 }

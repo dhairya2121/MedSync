@@ -1,9 +1,7 @@
 package com.example.medsync.activities;
 
-import static android.content.ContentValues.TAG;
-
 import android.content.Intent;
-import android.os.Bundle;import android.util.Log;
+import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,10 +13,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.medsync.R;
-import com.example.medsync.activities.dashboard.AssistantDashboard;
-import com.example.medsync.activities.dashboard.DoctorDashboard;
-import com.example.medsync.activities.dashboard.PatientDashboard;
-import com.example.medsync.activities.dashboard.ReceptionistDashboard;
 import com.example.medsync.utils.ViewUtils;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;

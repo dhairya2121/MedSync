@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardElevation="12dp"
+    app:cardBackgroundColor="@android:color/white"
+    app:shapeAppearanceOverlay="@style/TopRoundedCard">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Home Icon -->
+        <ImageButton
+            android:id="@+id/btnNavHome"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="18dp"
+            android:scaleType="fitCenter"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_home"
+            app:tint="#2196F3" />
+
+        <!-- Dynamic Icon -->
+        <ImageButton
+            android:id="@+id/btnNavRoleBased"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="18dp"
+            android:scaleType="fitCenter"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_analytics"
+            app:tint="#B0BEC5" />
+
+        <!-- Profile Icon -->
+        <ImageButton
+            android:id="@+id/btnNavProfile"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="18dp"
+            android:scaleType="fitCenter"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_person"
+            app:tint="#B0BEC5" />
+
+        <!-- Emergency Icon -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <ImageButton
+                android:id="@+id/btnNavEmergency"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:padding="5dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_emergency_call"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="#FFEBEE"
+                app:tint="#D32F2F"
+                android:elevation="1dp" />
+            <!-- Note: backgroundTint #FFEBEE is a soft red, tint #D32F2F is a strong red -->
+        </FrameLayout>
+
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

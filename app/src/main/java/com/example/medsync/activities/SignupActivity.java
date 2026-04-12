@@ -1,42 +1,30 @@
 package com.example.medsync.activities;
 
-import static android.content.ContentValues.TAG;
-
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.medsync.R;
-import com.example.medsync.activities.dashboard.AssistantDashboard;
-import com.example.medsync.activities.dashboard.DoctorDashboard;
-import com.example.medsync.activities.dashboard.PatientDashboard;
-import com.example.medsync.activities.dashboard.ReceptionistDashboard;
+import com.example.medsync.model.Assistant;
+import com.example.medsync.model.CareTaker;
+import com.example.medsync.model.Doctor;
+import com.example.medsync.model.Patient;
+import com.example.medsync.model.Receptionist;
 import com.example.medsync.utils.ViewUtils;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -123,7 +111,8 @@ public class SignupActivity extends AppCompatActivity {
                             db.collection("users").document(user.getUid()).set(userMap)
                                     .addOnSuccessListener(aVoid -> {
                                         ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
-                                        Toast.makeText(SignupActivity.this, "Account Created!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(SignupActivity.this, "User Account Created!", Toast.LENGTH_SHORT).show();
+                                        createRoleBasedDocuments(user,role);
                                         // 3. NOW it is safe to redirect
                                         ViewUtils.redirectToRoleBasedDashboard(SignupActivity.this,user);
                                     })
@@ -138,6 +127,68 @@ public class SignupActivity extends AppCompatActivity {
                         Toast.makeText(SignupActivity.this, error, Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+    public void createRoleBasedDocuments(FirebaseUser user, String role) {
+        if (user == null) return;
+        String uid = user.getUid();
+        Toast updateProfileToast= Toast.makeText(SignupActivity.this, "Please update profile", Toast.LENGTH_SHORT);
+
+        switch(role) {
+            case "R":
+                Receptionist r = new Receptionist();
+                db.collection("receptionists").document(uid).set(r)
+                        .addOnSuccessListener(v -> {
+                            Log.d("Signup", "Receptionist document created with UID: " + uid);
+                            updateProfileToast.show();
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("Signup", "Failed to create receptionist doc", e);
+                        });
+                break;
+            case "P":
+                Patient p=new Patient();
+                db.collection("patients").document(uid).set(p)
+                        .addOnSuccessListener(v->{
+                            Log.d("Signup","Patient document created with UID: "+uid);
+                            updateProfileToast.show();
+                        })
+                        .addOnFailureListener(e->{
+                            Log.e("Signup","Failed to create patient doc",e);
+                        });
+                break;
+            case "C":
+                CareTaker c=new CareTaker();
+                db.collection("careTakers").document(uid).set(c)
+                        .addOnSuccessListener(v->{
+                            Log.d("Signup","CareTaker document created with UID: "+uid);
+                            updateProfileToast.show();
+                        })
+                        .addOnFailureListener(e->{
+                            Log.e("Signup","Failed to create careTaker doc",e);
+                        });
+                break;
+            case "A":
+                Assistant a=new Assistant();
+                db.collection("assistants").document(uid).set(a)
+                        .addOnSuccessListener(v-> {
+                            Log.d("Signup", "Assistant document created with UID: " + uid);
+                            updateProfileToast.show();
+                        }).addOnFailureListener(e -> {
+                            Log.e("Signup", "Failed to create assistant doc", e);
+                        });
+                break;
+            case "D":
+                Doctor d=new Doctor();
+                db.collection("doctors").document(uid).set(d)
+                        .addOnSuccessListener(v->{
+                            Log.d("Signup","Doctor document created with UID: "+uid);
+                            updateProfileToast.show();
+                        })
+                        .addOnFailureListener(e->{
+                            Log.e("Signup","Failed to create doctor doc",e);
+                        });
+                break;
+        }
     }
 
 }

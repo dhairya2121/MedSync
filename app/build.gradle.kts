@@ -53,4 +53,6 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     implementation(libs.core.splashscreen)
+    implementation (libs.glide)
+    annotationProcessor (libs.compiler)
 }

@@ -11,37 +11,61 @@
         android:roundIcon="@drawable/ic_logo_large_foreground"
         android:supportsRtl="true"
         android:theme="@style/Theme.MedSync">
-
+        <activity
+            android:name=".activities.careTaker.Profile"
+            android:exported="false" />
+        <activity
+            android:name=".activities.receptionist.SearchHospitals"
+            android:exported="false" />
+        <activity
+            android:name=".activities.patient.Profile"
+            android:exported="false" />
+        <activity
+            android:name=".activities.doctor.Profile"
+            android:exported="false" />
+        <activity
+            android:name=".activities.assistant.Profile"
+            android:exported="false" />
+        <activity
+            android:name=".activities.receptionist.Profile"
+            android:exported="false" />
+        <activity
+            android:name=".activities.receptionist.Hospital"
+            android:exported="false" />
         <activity
             android:name=".activities.SplashActivity"
-            android:theme="@style/Theme.App.Starting"
+            android:exported="true"
+            android:theme="@style/Theme.App.Starting" />
+        <activity
+            android:name=".activities.careTaker.Dashboard"
+            android:exported="false" />
+        <activity
+            android:name=".activities.patient.Dashboard"
+            android:exported="false" />
+        <activity
+            android:name=".activities.assistant.Dashboard"
+            android:exported="false" />
+        <activity
+            android:name=".activities.doctor.Dashboard"
+            android:exported="false" />
+        <activity
+            android:name=".activities.RoleSelectionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.LoginActivity"
             android:exported="true">
-
-        </activity>
-        <activity
-            android:name=".activities.dashboard.CareTakerDashboard"
-            android:exported="false" />
-        <activity
-            android:name=".activities.dashboard.PatientDashboard"
-            android:exported="false" />
-        <activity
-            android:name=".activities.dashboard.AssistantDashboard"
-            android:exported="false" />
-        <activity
-            android:name=".activities.dashboard.DoctorDashboard"
-            android:exported="false" />
-        <activity android:name=".activities.RoleSelectionActivity"
-            android:exported="false" />
-        <activity android:name=".activities.LoginActivity" android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.SignupActivity" android:exported="false" >
-
-        </activity>
-        <activity android:name=".activities.dashboard.ReceptionistDashboard" android:exported="false" />
+        <activity
+            android:name=".activities.SignupActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.receptionist.Dashboard"
+            android:exported="false" />
     </application>
 
 </manifest>
