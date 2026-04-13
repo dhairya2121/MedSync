@@ -5,16 +5,89 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F8F9FA"
     tools:context=".activities.receptionist.SearchHospitals">
 
+    <!-- Search Header -->
+    <LinearLayout
+        android:id="@+id/search_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_search_bar"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="20dp"
+            android:paddingEnd="8dp">
+
+            <!-- Changed from TextView to EditText -->
+            <EditText
+                android:id="@+id/et_search_hospitals"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Search Hospitals"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:textColor="#333333"
+                android:textSize="16sp" />
+
+            <!-- Search Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_search_go"
+                android:layout_width="70dp"
+                android:layout_height="48dp"
+                android:backgroundTint="@color/dark_green"
+                android:clickable="true"
+                android:focusable="true"
+                app:cornerRadius="24dp"
+                app:icon="@drawable/ic_search"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconTint="@color/black" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Hospital List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_hospitals"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:padding="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_add_new"
+        app:layout_constraintTop_toBottomOf="@id/search_header"
+        tools:listitem="@layout/item_hospital_card" />
+
+    <!-- Add New Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_add_new"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_margin="16dp"
+        android:backgroundTint="@color/light_green"
+        android:text="+ Add New"
+        android:textAllCaps="false"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:clickable="true"
+        android:focusable="true"
+        app:cornerRadius="30dp"
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:strokeColor="#EEEEEE"
+        app:strokeWidth="1dp" />
 
     <include
         android:id="@+id/footer"
         layout="@layout/layout_footer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

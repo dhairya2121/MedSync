@@ -1,24 +1,14 @@
 package com.example.medsync.activities.careTaker;
 
-import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.example.medsync.R;
-import com.example.medsync.utils.BaseActivity;
-
-public class Profile extends BaseActivity {
+import com.example.medsync.utils.BaseProfileActivity;
+public class Profile extends BaseProfileActivity {
+    @Override
+    protected String getCollectionName() {
+        return "careTakers"; // Matches your Firestore collection
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_receptionist_profile);
-        applyEdgeToEdgePadding(findViewById(R.id.main));
-        setupBaseActivityFooter("profile","C");
-
+    protected String getUserRole() {
+        return "C"; // Used for footer/logic
     }
 }

@@ -84,85 +84,205 @@
                 android:id="@+id/hospital_address_card_container"
                 layout="@layout/view_editable_input" />
 
+            <!-- Infrastructure & Facilities Section -->
+            <!-- Infrastructure & Facilities Section -->
+            <TextView
+                android:id="@+id/tv_infra_section_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="16dp"
+                android:text="Infrastructure &amp; Facilities"
+                android:textColor="#9E9E9E"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <!-- Add a container with specific constraints to help the ScrollView measure -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:descendantFocusability="blocksDescendants">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_infrastructure"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                    app:spanCount="2"
+                    tools:itemCount="5"
+                    tools:listitem="@layout/item_room_card" />
+
+            </RelativeLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_new_room"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_margin="20dp"
+                android:backgroundTint="@color/light_green"
+                android:text="+ Add New Room"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:clickable="true"
+                app:cornerRadius="30dp"
+                app:layout_constraintBottom_toTopOf="@id/tv_rating_section_label"
+                app:strokeColor="#EEEEEE"
+                app:strokeWidth="1dp" />
+
+
+            <!-- Rating Section Label -->
             <TextView
                 android:id="@+id/tv_rating_section_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="Ratings"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="16dp"
+                android:text="Ratings &amp; Reviews"
                 android:textColor="#9E9E9E"
-                android:textSize="16sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/hospital_address_card_container" />
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
             <!-- Rating Card -->
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/hospital_rating_card_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:background="@android:color/white"
-                android:elevation="2dp">
+                android:layout_margin="12dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E3F2FD">
 
-
-                <!-- Horizontal Rating Row -->
                 <LinearLayout
-                    android:id="@+id/hospital_rating_card_container"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginTop="4dp">
-                    <!-- Big Rating Number -->
-                    <TextView
-                        android:id="@+id/tv_rating_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="4.5"
-                        android:textColor="#000000"
-                        android:textSize="32sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium" />
 
-                    <!-- Stars -->
-                    <RatingBar
-                        android:id="@+id/rating_bar"
-                        style="?android:attr/ratingBarStyleSmall"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:numStars="5"
-                        android:stepSize="0.5"
-                        android:rating="4.7"
-                        android:isIndicator="true"
-                        android:progressTint="#FFBB00"
-                        android:secondaryProgressTint="#FFBF00"
-                        android:progressBackgroundTint="#B2B2B2" />
-                </LinearLayout>
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-                <!-- Reviews Count -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                <TextView
-                    android:id="@+id/tv_review_count"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="23"
-                    android:textColor="#9E9E9E"
-                    android:textSize="18sp"
-                    android:layout_marginTop="2dp"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" reviews"
-                    android:textColor="#9E9E9E"
-                    android:textSize="18sp"
-                    android:layout_marginTop="2dp"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <!-- Big Rating Number -->
+                        <TextView
+                            android:id="@+id/tv_rating_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="4.5"
+                            android:textColor="#1A237E"
+                            android:textSize="36sp" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:orientation="vertical">
+
+                            <!-- Stars -->
+                            <RatingBar
+                                android:id="@+id/rating_bar"
+                                style="?android:attr/ratingBarStyleSmall"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:isIndicator="true"
+                                android:numStars="5"
+                                android:progressBackgroundTint="#E0E0E0"
+                                android:progressTint="#FFB300"
+                                android:rating="4.5"
+                                android:secondaryProgressTint="#FFB300"
+                                android:stepSize="0.5" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+                            <!-- Reviews Count -->
+                            <TextView
+                                android:id="@+id/tv_review_count"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="23"
+                                android:textColor="#757575"
+                                android:textSize="13sp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:text=" reviews"
+                                android:textColor="#757575"
+                                android:textSize="13sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Spacer to push the icon to the end -->
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+
+                        <!-- Visual Icon for the section -->
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:alpha="0.2"
+                            android:src="@android:drawable/btn_star_big_on"
+                            app:tint="#1A237E" />
+
+                    </LinearLayout>
+
                 </LinearLayout>
-            </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete_hospital_profile"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:backgroundTint="#FFEBEE"
+                android:text="Delete Profile"
+                android:textAllCaps="false"
+                android:textColor="#D32F2F"
+                android:textSize="16sp"
+                app:cornerRadius="28dp"
+                app:icon="@drawable/ic_delete"
+                app:iconGravity="textStart"
+                app:iconTint="#D32F2F"
+                app:strokeColor="#FFCDD2"
+                app:strokeWidth="1dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_exit_hospital"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:backgroundTint="#FFEBEE"
+                android:text="Exit Hospital"
+                android:textAllCaps="false"
+                android:textColor="#D32F2F"
+                android:textSize="16sp"
+                app:cornerRadius="28dp"
+                app:icon="@drawable/ic_logout"
+                app:iconGravity="textStart"
+                app:iconTint="#D32F2F"
+                app:strokeColor="#FFCDD2"
+                app:strokeWidth="1dp" />
         </LinearLayout>
+
     </ScrollView>
 
     <include
