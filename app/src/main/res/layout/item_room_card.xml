@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="150dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    android:layout_columnWeight="1"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@android:color/white"
+    android:elevation="2dp">
+
+    <!-- Top Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Room Number -->
+        <TextView
+            android:id="@+id/tv_room_no"
+            android:layout_width="10dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="101"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <!-- Delete -->
+        <ImageView
+            android:id="@+id/btn_delete_room"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@android:drawable/ic_menu_delete"
+            app:tint="#F44336"/>
+    </LinearLayout>
+
+    <!-- Room Type -->
+    <TextView
+        android:id="@+id/tv_room_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ICU"
+        android:textColor="#757575"
+        android:textSize="13sp"
+        android:layout_marginTop="4dp"/>
+
+</LinearLayout>
