@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MedSync">
         <activity
+            android:name=".activities.receptionist.ManageAppointments"
+            android:exported="false" />
+        <activity
             android:name=".activities.receptionist.PatientDetails"
             android:exported="false" />
         <activity

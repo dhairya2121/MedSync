@@ -1,0 +1,95 @@
+package com.example.medsync.activities.receptionist;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.example.medsync.R;
+import com.example.medsync.adapters.AppointmentAdapter;
+import com.example.medsync.model.Treatment;
+import com.example.medsync.utils.BaseActivity;
+import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ManageAppointments extends BaseActivity implements AppointmentAdapter.OnAppointmentListener {
+
+    private RecyclerView recyclerView;
+    private AppointmentAdapter adapter;
+    private FirebaseFirestore db;
+    private String hospitalId;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_manage_appointments);
+
+        // 1. Setup UI components from BaseActivity
+        applyEdgeToEdgePadding(findViewById(R.id.toolbar)); // Adjust padding if needed
+        setupBaseActivityNavbar("R", "Manage Appointments");
+        setupBaseActivityFooter("home", "R");
+
+        // 2. Get Hospital ID
+        hospitalId = getSharedPreferences("medsync_prefs", MODE_PRIVATE).getString("hospital_id", null);
+
+        if (hospitalId == null) {
+            Toast.makeText(this, "Hospital ID not found. Please link a hospital first.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        db = FirebaseFirestore.getInstance();
+
+        // 3. Setup RecyclerView
+        recyclerView = findViewById(R.id.recyclerViewAppointments);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new AppointmentAdapter(this);
+        recyclerView.setAdapter(adapter);
+
+        // 4. Setup "Add New" Button
+        MaterialButton btnAddNew = findViewById(R.id.btn_add_new);
+        btnAddNew.setOnClickListener(v -> {
+            // Replace with your actual Add Appointment Activity
+            // Intent intent = new Intent(this, AddAppointmentActivity.class);
+            // startActivity(intent);
+            Toast.makeText(this, "Opening Add Appointment...", Toast.LENGTH_SHORT).show();
+        });
+
+        fetchTreatments();
+    }
+
+    private void fetchTreatments() {
+        // Listening for treatments of type "APPOINTMENT" specifically
+        db.collection("hospitals").document(hospitalId).collection("treatments")
+                .whereEqualTo("type", "APPOINTMENT")
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Toast.makeText(this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    List<Treatment> list = new ArrayList<>();
+                    if (value != null) {
+                        for (QueryDocumentSnapshot doc : value) {
+                            Treatment t = doc.toObject(Treatment.class);
+                            t.setId(doc.getId());
+                            list.add(t);
+                        }
+                    }
+                    adapter.setTreatments(list);
+                });
+    }
+
+    @Override
+    public void onDeleteClick(Treatment treatment) {
+        db.collection("hospitals").document(hospitalId)
+                .collection("treatments").document(treatment.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Appointment Deleted", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete", Toast.LENGTH_SHORT).show());
+    }
+}

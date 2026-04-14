@@ -452,7 +452,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="--"
-                            id="@+id/admitted_count"
+                            android:id="@+id/admitted_count"
                             android:textColor="#1B5E20"
                             android:textSize="42sp"
                             android:textStyle="bold"
