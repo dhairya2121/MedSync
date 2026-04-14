@@ -38,7 +38,7 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
 
         holder.tvName.setText(patient.name != null ? patient.name : "Unknown");
         holder.tvGender.setText(patient.gender != null ? patient.gender : "N/A");
-        holder.tvAge.setText((patient.age != null ? patient.age : "00") + " yrs");
+        holder.tvAge.setText((patient.age != 0 ? patient.age : "00") + " yrs");
 
         if (patient.isAdmitted) {
             holder.tvStatus.setVisibility(View.VISIBLE);

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F5F5">
@@ -16,27 +17,27 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/white"
-            app:title="Manage Appointments"
+            app:title="Hospital Operations"
             app:titleTextColor="@color/black" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewAppointments"
+        android:id="@+id/rvOperations"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/btn_add_new"
+        app:layout_constraintBottom_toTopOf="@id/btn_add_new"
         app:layout_constraintTop_toBottomOf="@id/appBarLayout" />
 
+    <!-- Add New Operation Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_add_new"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_margin="16dp"
         android:backgroundTint="@color/light_green"
-        android:text="+ New Appointment"
-        android:visibility="gone"
+        android:text="+ Schedule Operation"
         android:textAllCaps="false"
         android:textColor="@color/black"
         android:textSize="18sp"

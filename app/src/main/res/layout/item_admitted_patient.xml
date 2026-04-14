@@ -1,122 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardCornerRadius="16dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="#F0F0F0">
+    app:strokeWidth="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp">
 
-        <!-- Patient Image Container -->
-        <FrameLayout
-            android:id="@+id/patientImageContainer"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:background="@drawable/circle_background"
+        <TextView
+            android:id="@+id/tvProfileInitial"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@drawable/bg_patient_profile_circle"
+            android:gravity="center"
+            android:text="P"
+            android:textColor="#AD1457"
+            android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/ivPatient"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="12dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_person"
-                app:shapeAppearanceOverlay="@style/CircleImage" />
-        </FrameLayout>
-
-        <!-- Information Column -->
-        <LinearLayout
-            android:id="@+id/infoLayout"
+        <TextView
+            android:id="@+id/tvPatientName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/roomBadgeContainer"
-            app:layout_constraintStart_toEndOf="@id/patientImageContainer"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_marginStart="16dp"
+            android:text="Patient Name"
+            android:textColor="#212121"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/tvRoomBadge"
+            app:layout_constraintStart_toEndOf="@+id/tvProfileInitial"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/tvPatientName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Patient Name"
-                android:textColor="#333333"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tvTreatmentType"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="General Treatment"
+            android:textColor="#757575"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="@+id/tvPatientName"
+            app:layout_constraintStart_toStartOf="@+id/tvPatientName"
+            app:layout_constraintTop_toBottomOf="@+id/tvPatientName" />
 
-            <TextView
-                android:id="@+id/tvTreatmentType"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Fever"
-                android:textColor="#666666"
-                android:textSize="13sp" />
+        <TextView
+            android:id="@+id/tvPatientDetails"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Male | 25 yrs"
+            android:textColor="#212121"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="@+id/tvTreatmentType"
+            app:layout_constraintStart_toStartOf="@+id/tvTreatmentType"
+            app:layout_constraintTop_toBottomOf="@+id/tvTreatmentType" />
 
-            <!-- Admitted On Row -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Admitted on: "
-                    android:textColor="#888888"
-                    android:textSize="12sp" />
-
-                <TextView
-                    android:id="@+id/tvAdmittedOn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="12-04-24"
-                    android:textColor="#888888"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- Room Number Badge (Horizontal Container) -->
-        <LinearLayout
-            android:id="@+id/roomBadgeContainer"
+        <TextView
+            android:id="@+id/tvRoomBadge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/rounded_role_button"
-            android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
+            android:background="@drawable/bg_green_status_badge"
+            android:paddingHorizontal="12dp"
             android:paddingVertical="4dp"
+            android:text="Room 101"
+            android:textColor="@color/hard_green"
+            android:textSize="12sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Room "
-                android:textColor="#2196F3"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvRoomNo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="204"
-                android:textColor="#2196F3"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -3,7 +3,7 @@ public class Patient {
     public String name; // Add this
     public String email;
     public String phone;
-    public String age;  // Add this
+    public long age;  // Add this
     public String doctor_id;
     public String gender;
     public String assistant_id;
@@ -13,14 +13,18 @@ public class Patient {
     public String admittedOn;
     public String dischargeOn;
     public String room_id;
-
+    public Long room_no;
     public Patient() {}
 
     // Constructor for easy testing
-    public Patient(String name, String gender, String age, boolean isAdmitted) {
+    public Patient(String name, String gender, Long age, boolean isAdmitted) {
         this.name = name;
         this.gender = gender;
         this.age = age;
         this.isAdmitted = isAdmitted;
+    }
+
+    public void setId(String id) {
+
     }
 }

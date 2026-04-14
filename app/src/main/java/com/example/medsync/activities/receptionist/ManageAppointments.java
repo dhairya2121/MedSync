@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.medsync.R;
 import com.example.medsync.adapters.AppointmentAdapter;
 import com.example.medsync.model.Treatment;
+import com.example.medsync.model.enums.TreatmentType;
 import com.example.medsync.utils.BaseActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -51,21 +52,27 @@ public class ManageAppointments extends BaseActivity implements AppointmentAdapt
         recyclerView.setAdapter(adapter);
 
         // 4. Setup "Add New" Button
-        MaterialButton btnAddNew = findViewById(R.id.btn_add_new);
-        btnAddNew.setOnClickListener(v -> {
-            // Replace with your actual Add Appointment Activity
-            // Intent intent = new Intent(this, AddAppointmentActivity.class);
-            // startActivity(intent);
-            Toast.makeText(this, "Opening Add Appointment...", Toast.LENGTH_SHORT).show();
-        });
+//        MaterialButton btnAddNew = findViewById(R.id.btn_add_new);
+//        btnAddNew.setOnClickListener(v -> {
+//            // Replace with your actual Add Appointment Activity
+//            // Intent intent = new Intent(this, AddAppointmentActivity.class);
+//            // startActivity(intent);
+//            Toast.makeText(this, "Opening Add Appointment...", Toast.LENGTH_SHORT).show();
+//        });
 
         fetchTreatments();
     }
 
     private void fetchTreatments() {
-        // Listening for treatments of type "APPOINTMENT" specifically
+        // Correctly initialize the list of types for the query
+        List<String> appointmentTypes = new ArrayList<>();
+        appointmentTypes.add(TreatmentType.APPOINTMENT.name());
+        appointmentTypes.add(TreatmentType.FOLLOW_UP.name());
+        appointmentTypes.add(TreatmentType.CHECKUP.name());
+
+        // Listening for treatments of specific appointment types
         db.collection("hospitals").document(hospitalId).collection("treatments")
-                .whereEqualTo("type", "APPOINTMENT")
+                .whereIn("type", appointmentTypes) // Corrected syntax
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
                         Toast.makeText(this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();

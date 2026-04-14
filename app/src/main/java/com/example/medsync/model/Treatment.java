@@ -12,6 +12,8 @@ public class Treatment {
     public String type;
     public String hospital_id;
     public String room_id;
+    public long room_no;
+
 
     // Names added for UI display (as used in Adapter)
     public String patient_id;

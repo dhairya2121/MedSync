@@ -9,12 +9,10 @@
     app:cardElevation="2dp"
     app:strokeWidth="1dp"
     app:strokeColor="#E0E0E0">
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
-
         <TextView
             android:id="@+id/tvTreatmentType"
             android:layout_width="0dp"
@@ -26,7 +24,6 @@
             app:layout_constraintEnd_toStartOf="@+id/tvStatusBadge"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
         <TextView
             android:id="@+id/tvStatusBadge"
             android:layout_width="wrap_content"
@@ -40,7 +37,6 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
         <TextView
             android:id="@+id/tvTreatmentDate"
             android:layout_width="wrap_content"
@@ -51,7 +47,6 @@
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTreatmentType" />
-
         <View
             android:id="@+id/divider"
             android:layout_width="match_parent"
@@ -60,16 +55,44 @@
             android:background="#EEEEEE"
             app:layout_constraintTop_toBottomOf="@id/tvTreatmentDate" />
 
+        <!-- Patient Name Row -->
+        <LinearLayout
+            android:id="@+id/llPatientRow"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider">
+
+            <ImageView
+                android:id="@+id/ivPatientIcon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_person"
+                app:tint="#757575" />
+
+            <TextView
+                android:id="@+id/tvPatientName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Patient --"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+        <!-- Doctor Name Row -->
         <ImageView
             android:id="@+id/ivDoctorIcon"
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:src="@drawable/ic_doctor"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/divider"
+            app:layout_constraintTop_toBottomOf="@id/llPatientRow"
             app:tint="#757575" />
-
         <TextView
             android:id="@+id/tvDoctorName"
             android:layout_width="wrap_content"
@@ -80,6 +103,5 @@
             app:layout_constraintBottom_toBottomOf="@id/ivDoctorIcon"
             app:layout_constraintStart_toEndOf="@id/ivDoctorIcon"
             app:layout_constraintTop_toTopOf="@id/ivDoctorIcon" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
