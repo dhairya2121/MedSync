@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    tools:context=".activities.receptionist.ManagePatients">
+
+    <TextView
+        android:id="@+id/tv_hospital_profile_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="Manage Users"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <include
+        android:id="@+id/search_bar"
+        layout="@layout/item_search_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_hospital_profile_title" />
+
+    <LinearLayout
+        android:id="@+id/filter_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/search_bar"
+        android:padding="16dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filter by"
+            android:layout_marginRight="16dp"
+            android:textColor="#888888"
+            android:textSize="18sp" />
+        <TextView
+            android:id="@+id/tvFilterEnabled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_green_status_badge"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="6dp"
+            android:visibility="gone"
+            android:text="Admitted"
+            android:textColor="@color/hard_green"
+            android:textSize="14sp"
+            android:clickable="true"
+
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/tvFilterDisabled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_grey_status_badge"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="6dp"
+            android:text="Admitted"
+            android:clickable="true"
+            android:visibility="visible"
+            android:textColor="@color/hard_grey"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </LinearLayout>
+    <!-- RecyclerView for Patient Cards -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvPatientList"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/filter_bar"
+        tools:listitem="@layout/item_patient_card" />
+
+    <!-- Add this inside the root ConstraintLayout, at the very bottom -->
+    <include
+        android:id="@+id/footer"
+        layout="@layout/layout_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

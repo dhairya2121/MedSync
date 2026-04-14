@@ -10,6 +10,7 @@ public class Treatment {
     public String room_id;
     public String patient_id;
     public String examiner_id;
+    public String examiner_name;
     public String assistant_id;
 
     public Report report; //Report.java

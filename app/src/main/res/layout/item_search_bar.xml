@@ -20,12 +20,12 @@
         android:paddingEnd="6dp">
 
         <EditText
-            android:id="@+id/et_search_hospitals"
+            android:id="@+id/et_search"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:hint="Search Hospitals"
+            android:hint="Search Something"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:textColor="#333333"

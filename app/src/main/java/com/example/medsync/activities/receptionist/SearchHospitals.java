@@ -46,7 +46,7 @@ public class SearchHospitals extends BaseActivity {
         mAuth = FirebaseAuth.getInstance();
         hospitalList = new ArrayList<>();
 
-        etSearch = findViewById(R.id.et_search_hospitals);
+        etSearch = findViewById(R.id.et_search);
         btnSearch = findViewById(R.id.btn_search_go);
         btnAddNew = findViewById(R.id.btn_add_new);
         rvHospitals = findViewById(R.id.rv_hospitals);

@@ -2,7 +2,6 @@ package com.example.medsync.activities.receptionist;
 
 import android.content.Intent;import android.os.Bundle;
 import android.view.View;
-import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -17,10 +16,8 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -70,6 +67,10 @@ public class Dashboard extends BaseActivity {
 
                             // Check if hospital_id is valid (not null and not empty)
                             if (ViewUtils.isValidUid(hospitalId)) {
+                                getSharedPreferences("medsync_prefs", MODE_PRIVATE)
+                                        .edit()
+                                        .putString("hospital_id", hospitalId)
+                                        .apply();
                                 dashboardSection.setVisibility(View.VISIBLE);
                                 btnAddHospital.setVisibility(View.GONE);
                                 dashboardWatermark.setVisibility(View.GONE);
@@ -103,6 +104,10 @@ public class Dashboard extends BaseActivity {
                         Toast.makeText(this,"Error loading dashboard",Toast.LENGTH_SHORT).show();
                     }
                 });
+        MaterialCardView btnUsersPatients=findViewById(R.id.btnUsersPatients);
+        MaterialCardView btnUsersAssistants=findViewById(R.id.btnUsersAssistants);
+        MaterialCardView btnUsersDoctors=findViewById(R.id.btnUsersDoctors);
+        MaterialCardView btnUsersCareTakers=findViewById(R.id.btnUsersCareTakers);
 
         TextView tvPatientCount = manageUsersSection.findViewById(R.id.patient_count);
         TextView tvCareTakersCount = manageUsersSection.findViewById(R.id.care_taker_count);
@@ -135,24 +140,24 @@ public class Dashboard extends BaseActivity {
                     tvDoctorCount.setText(String.valueOf(snapshots.size()));
                 });
 
-        tvPatientCount.setOnClickListener(v->{
-            redirectToActivity(ManageUsers.class);
+        btnUsersPatients.setOnClickListener(v->{
+            redirectToActivity(ManagePatients.class);
         });
-        tvAssistentCount.setOnClickListener(v->{
-            redirectToActivity(ManageUsers.class);
+        btnUsersAssistants.setOnClickListener(v->{
+//            redirectToActivity(ManageAssistants.class);
         });
-        tvDoctorCount.setOnClickListener(v->{
-            redirectToActivity(ManageUsers.class);
+        btnUsersDoctors.setOnClickListener(v->{
+//            redirectToActivity(ManagePatients.class);
         });
-        tvCareTakersCount.setOnClickListener(v->{
-            redirectToActivity(ManageUsers.class);
+        btnUsersCareTakers.setOnClickListener(v->{
+//            redirectToActivity(ManagePatients.class);
         });
 
     }
 
     public void redirectToActivity(Class<?> activityClass) {
         Intent intent = new Intent(this, activityClass);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         overridePendingTransition(0, 0);
         startActivity(intent);
     }

@@ -6,5 +6,8 @@
     <color name="light_green">#8bee06</color>
     <color name="white">#FFFFFFFF</color>
     <color name="dark_green">#01e37e</color>
-
+    <color name="soft_green">#E8F5E9</color>
+    <color name="hard_green">#4CAF50</color>
+    <color name="soft_grey">#F5F5F5</color>
+    <color name="hard_grey">#727272</color>
 </resources>

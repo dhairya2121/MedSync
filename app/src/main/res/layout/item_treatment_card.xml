@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#E0E0E0">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvTreatmentType"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="General Checkup"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/tvStatusBadge"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvStatusBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_green_status_badge"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:text="SUCCESS"
+            android:textColor="@color/hard_green"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTreatmentDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:alpha="0.7"
+            android:text="Oct 24, 2023 • 10:30 AM"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTreatmentType" />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="#EEEEEE"
+            app:layout_constraintTop_toBottomOf="@id/tvTreatmentDate" />
+
+        <ImageView
+            android:id="@+id/ivDoctorIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginTop="12dp"
+            android:src="@drawable/ic_doctor"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider"
+            app:tint="#757575" />
+
+        <TextView
+            android:id="@+id/tvDoctorName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Dr. --"
+            android:textSize="13sp"
+            app:layout_constraintBottom_toBottomOf="@id/ivDoctorIcon"
+            app:layout_constraintStart_toEndOf="@id/ivDoctorIcon"
+            app:layout_constraintTop_toTopOf="@id/ivDoctorIcon" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
