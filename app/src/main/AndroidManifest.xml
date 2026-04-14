@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MedSync">
         <activity
+            android:name=".activities.receptionist.ManageUsers"
+            android:exported="false" />
+        <activity
             android:name=".activities.receptionist.RoomDetails"
             android:exported="false" />
         <activity

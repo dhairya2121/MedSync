@@ -1,5 +1,7 @@
 package com.example.medsync.model;
 public class CareTaker {
+    public String hospital_id;
+
     public String patient_id;
     public String relation;
     public CareTaker() {}

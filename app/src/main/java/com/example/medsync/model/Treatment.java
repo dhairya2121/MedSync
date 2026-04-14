@@ -5,6 +5,7 @@ import java.util.List;
 public class Treatment {
 
     public String type; // TreatmentType.java
+    public String hospital_id;
 
     public String room_id;
     public String patient_id;
