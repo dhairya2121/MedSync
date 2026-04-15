@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FA">
+
+    <include android:id="@+id/navbar" layout="@layout/layout_navbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:layout_constraintTop_toBottomOf="@id/navbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Operation Details"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"
+                android:layout_gravity="center"/>
+
+            <!-- READ ONLY: Patient & Doctor -->
+            <include android:id="@+id/view_patient_name" layout="@layout/item_viewable_field" />
+            <include android:id="@+id/view_doctor_name" layout="@layout/item_viewable_field" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginVertical="16dp"/>
+
+            <!-- EDITABLE: Type, Room, Time -->
+            <include android:id="@+id/card_op_type" layout="@layout/view_editable_input" />
+            <include android:id="@+id/card_room_no" layout="@layout/view_editable_input" />
+            <include android:id="@+id/card_start_time" layout="@layout/view_editable_input" />
+            <include android:id="@+id/card_end_time" layout="@layout/view_editable_input" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save_operation"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="24dp"
+                android:text="Confirm Schedule"
+                app:cornerRadius="12dp"
+                android:backgroundTint="@color/hard_green" />
+
+        </LinearLayout>
+    </ScrollView>
+    <include
+        android:id="@+id/footer"
+        layout="@layout/layout_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -30,21 +30,6 @@
         app:layout_constraintBottom_toTopOf="@id/btn_add_new"
         app:layout_constraintTop_toBottomOf="@id/appBarLayout" />
 
-    <!-- Add New Operation Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_add_new"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_margin="16dp"
-        android:backgroundTint="@color/light_green"
-        android:text="+ Schedule Operation"
-        android:textAllCaps="false"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        app:cornerRadius="30dp"
-        app:layout_constraintBottom_toTopOf="@id/footer"
-        app:strokeColor="#EEEEEE"
-        app:strokeWidth="1dp" />
 
     <include
         android:id="@+id/footer"

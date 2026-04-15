@@ -1,8 +1,8 @@
 package com.example.medsync.adapters;
 
-import android.view.LayoutInflater;
-import android.view.View;
+import android.view.LayoutInflater;import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -19,11 +19,17 @@ import java.util.Locale;
 public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.TreatmentViewHolder> {
 
     private List<Treatment> treatmentList;
-    // Define the desired format: dd-MM-yyyy | HH:mm
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault());
+    private OnTreatmentListener listener;
 
-    public TreatmentAdapter(List<Treatment> treatmentList) {
+    public interface OnTreatmentListener {
+        void onDeleteClick(Treatment treatment);
+    }
+
+    // Single constructor to handle the listener
+    public TreatmentAdapter(List<Treatment> treatmentList, OnTreatmentListener listener) {
         this.treatmentList = treatmentList;
+        this.listener = listener;
     }
 
     public void setList(List<Treatment> list) {
@@ -43,7 +49,7 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
     public void onBindViewHolder(@NonNull TreatmentViewHolder holder, int position) {
         Treatment t = treatmentList.get(position);
 
-        // 1. Get Pretty Name from Enum
+        // 1. Title handling
         String displayTitle = t.type;
         try {
             displayTitle = TreatmentType.valueOf(t.type).getDisplayName();
@@ -52,41 +58,40 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
         }
         holder.tvType.setText(displayTitle);
 
-        // 2. Formatted Date and Time
-        // Inside onBindViewHolder
+        // 2. Date Formatting
         if (t.start != null) {
             try {
-                // Parse the DB string "2026-04-16T14:00:00"
                 SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
                 Date date = parser.parse(t.start);
-
-                // Format to "dd-MM-yyyy | HH:mm"
-                if (date != null) {
-                    holder.tvDate.setText(dateFormat.format(date));
-                }
+                if (date != null) holder.tvDate.setText(dateFormat.format(date));
             } catch (Exception e) {
-                holder.tvDate.setText(t.start); // Fallback to raw string
+                holder.tvDate.setText(t.start);
             }
         } else {
             holder.tvDate.setText("Date not set");
         }
 
-        // 3. Standard Info
+        // 3. Info and Visibility
         holder.tvDocName.setText(t.getDoctorName());
         holder.tvStatus.setText(t.status != null ? t.status.toUpperCase() : "PENDING");
-
-        // 4. Receptionist View: Show Patient Row
         holder.llPatientRow.setVisibility(View.VISIBLE);
         holder.tvPatientName.setText(t.getPatientName());
 
-        // 5. Status Coloring logic
+        // 4. Status Coloring
         if ("SUCCESS".equalsIgnoreCase(t.status)) {
-            holder.tvStatus.setTextColor(0xFF2E7D32); // Green
+            holder.tvStatus.setTextColor(0xFF2E7D32);
         } else if ("ONGOING".equalsIgnoreCase(t.status)) {
-            holder.tvStatus.setTextColor(0xFFEF6C00); // Orange
+            holder.tvStatus.setTextColor(0xFFEF6C00);
         } else {
-            holder.tvStatus.setTextColor(0xFF757575); // Gray
+            holder.tvStatus.setTextColor(0xFF757575);
         }
+
+        // 5. Delete Action - FIXED: changed 'item' to 't'
+        holder.btnDelete.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onDeleteClick(t);
+            }
+        });
     }
 
     @Override
@@ -97,6 +102,7 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
     public static class TreatmentViewHolder extends RecyclerView.ViewHolder {
         TextView tvType, tvStatus, tvDate, tvDocName, tvPatientName;
         LinearLayout llPatientRow;
+        ImageButton btnDelete;
 
         public TreatmentViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -106,6 +112,7 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
             tvDocName = itemView.findViewById(R.id.tvDoctorName);
             llPatientRow = itemView.findViewById(R.id.llPatientRow);
             tvPatientName = itemView.findViewById(R.id.tvPatientName);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 }

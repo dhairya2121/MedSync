@@ -16,7 +16,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ManageOperations extends BaseActivity {
+public class ManageOperations extends BaseActivity implements TreatmentAdapter.OnTreatmentListener {
 
     private RecyclerView recyclerView;
     private TreatmentAdapter adapter;
@@ -43,22 +43,16 @@ public class ManageOperations extends BaseActivity {
         recyclerView = findViewById(R.id.rvOperations);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Fix: Pass empty list to constructor
-        adapter = new TreatmentAdapter(new ArrayList<>());
+        // Pass 'this' as the listener for the delete button
+        adapter = new TreatmentAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
 
-        MaterialButton btnAddNew = findViewById(R.id.btn_add_new);
-        btnAddNew.setOnClickListener(v -> {
-            // Intent intent = new Intent(this, AddOperationActivity.class);
-            // startActivity(intent);
-            Toast.makeText(this, "Redirecting to Schedule Operation...", Toast.LENGTH_SHORT).show();
-        });
+
 
         fetchOperations();
     }
 
     private void fetchOperations() {
-        // Create a list of types to exclude (currently just APPOINTMENT)
         List<String> types = new ArrayList<>();
         types.add(TreatmentType.OPERATION.name());
         types.add(TreatmentType.CHECKUP.name());
@@ -69,10 +63,7 @@ public class ManageOperations extends BaseActivity {
         db.collection("hospitals").document(hospitalId).collection("treatments")
                 .whereIn("type", types)
                 .addSnapshotListener((value, error) -> {
-                    if (error != null) {
-                        Toast.makeText(this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                    if (error != null) return;
 
                     List<Treatment> list = new ArrayList<>();
                     if (value != null) {
@@ -82,8 +73,17 @@ public class ManageOperations extends BaseActivity {
                             list.add(t);
                         }
                     }
-                    // Update the adapter with the filtered list
                     adapter.setList(list);
                 });
+    }
+
+    // DELETE LOGIC:
+    // In ManageOperations.java
+    @Override
+    public void onDeleteClick(Treatment treatment) {
+        db.collection("hospitals").document(hospitalId)
+                .collection("treatments").document(treatment.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show());
     }
 }

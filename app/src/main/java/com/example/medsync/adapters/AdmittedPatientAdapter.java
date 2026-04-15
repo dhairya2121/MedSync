@@ -1,5 +1,6 @@
 package com.example.medsync.adapters;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.medsync.R;
+import com.example.medsync.activities.receptionist.AdmittedPatientDetails;
 import com.example.medsync.model.Patient;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +56,12 @@ public class AdmittedPatientAdapter extends RecyclerView.Adapter<AdmittedPatient
         String gender = item.gender != null ? item.gender : "N/A";
         long age = item.age;
         holder.tvPatientDetails.setText(String.format("%s | %d yrs", gender, age));
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), AdmittedPatientDetails.class);
+            intent.putExtra("patient_id", item.id);
+            v.getContext().startActivity(intent);
+        });
+
     }
 
     @Override

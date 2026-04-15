@@ -24,6 +24,19 @@
             app:layout_constraintEnd_toStartOf="@+id/tvStatusBadge"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+        <!-- Inside your item_treatment_card.xml ConstraintLayout -->
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+
+            android:src="@drawable/ic_delete"
+            app:tint="#E53935"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
         <TextView
             android:id="@+id/tvStatusBadge"
             android:layout_width="wrap_content"

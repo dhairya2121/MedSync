@@ -20,10 +20,11 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PatientDetails extends BaseActivity {
+// 1. Implement the Listener interface
+public class PatientDetails extends BaseActivity implements TreatmentAdapter.OnTreatmentListener {
 
     private String patientId;
-    private String hospitalId; // Added to store hospital context
+    private String hospitalId;
     private FirebaseFirestore db;
 
     private TextView tvInitial, tvFullName;
@@ -38,7 +39,6 @@ public class PatientDetails extends BaseActivity {
 
         db = FirebaseFirestore.getInstance();
 
-        // 1. Get IDs from Intent and SharedPreferences
         patientId = getIntent().getStringExtra("patient_id");
         hospitalId = getSharedPreferences("medsync_prefs", MODE_PRIVATE)
                 .getString("hospital_id", "");
@@ -61,9 +61,27 @@ public class PatientDetails extends BaseActivity {
         rvTreatments = findViewById(R.id.rvTreatments);
 
         treatmentList = new ArrayList<>();
-        treatmentAdapter = new TreatmentAdapter(treatmentList);
+        // 2. Pass 'this' as the second argument to the constructor
+        treatmentAdapter = new TreatmentAdapter(treatmentList, this);
         rvTreatments.setLayoutManager(new LinearLayoutManager(this));
         rvTreatments.setAdapter(treatmentAdapter);
+    }
+
+    // 3. Implement the onDeleteClick method
+    @Override
+    public void onDeleteClick(Treatment treatment) {
+        if (hospitalId == null || hospitalId.isEmpty()) return;
+
+        db.collection("hospitals").document(hospitalId)
+                .collection("treatments").document(treatment.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Treatment Deleted", Toast.LENGTH_SHORT).show();
+                    // The SnapshotListener in ManageOperations handles updates automatically,
+                    // but here we are using a .get() call, so we manually refresh:
+                    loadPastTreatments();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete", Toast.LENGTH_SHORT).show());
     }
 
     private void loadPatientData() {
@@ -94,8 +112,6 @@ public class PatientDetails extends BaseActivity {
     }
 
     private void loadPastTreatments() {
-        // 2. Updated path to look in specific hospital sub-collection
-        // Path: hospitals/{hospitalId}/treatments
         db.collection("hospitals")
                 .document(hospitalId)
                 .collection("treatments")
@@ -106,12 +122,15 @@ public class PatientDetails extends BaseActivity {
                     if (queryDocumentSnapshots != null) {
                         treatmentList.clear();
                         treatmentList.addAll(queryDocumentSnapshots.toObjects(Treatment.class));
+                        // Crucial: Set the IDs manually if not handled by toObjects
+                        for (int i = 0; i < queryDocumentSnapshots.size(); i++) {
+                            treatmentList.get(i).setId(queryDocumentSnapshots.getDocuments().get(i).getId());
+                        }
                         treatmentAdapter.notifyDataSetChanged();
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e("PatientDetails", "Error loading treatments: ", e);
-                    Toast.makeText(this, "Failed to load treatment history", Toast.LENGTH_SHORT).show();
                 });
     }
 }
