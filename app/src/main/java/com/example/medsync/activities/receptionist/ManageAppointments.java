@@ -51,15 +51,6 @@ public class ManageAppointments extends BaseActivity implements AppointmentAdapt
         adapter = new AppointmentAdapter(this);
         recyclerView.setAdapter(adapter);
 
-        // 4. Setup "Add New" Button
-//        MaterialButton btnAddNew = findViewById(R.id.btn_add_new);
-//        btnAddNew.setOnClickListener(v -> {
-//            // Replace with your actual Add Appointment Activity
-//            // Intent intent = new Intent(this, AddAppointmentActivity.class);
-//            // startActivity(intent);
-//            Toast.makeText(this, "Opening Add Appointment...", Toast.LENGTH_SHORT).show();
-//        });
-
         fetchTreatments();
     }
 
@@ -91,6 +82,23 @@ public class ManageAppointments extends BaseActivity implements AppointmentAdapt
                 });
     }
 
+    // Add this method to ManageAppointments.java
+
+    @Override
+    public void onAdmitClick(Treatment treatment) {
+        // Redirect to AdmitPatient activity
+        Intent intent = new Intent(this, AdmitPatient.class);
+
+        // Required by AdmitPatient.java: patient_id and patient_name
+        intent.putExtra("patient_id", treatment.patient_id);
+        intent.putExtra("patient_name", treatment.patient_name);
+
+        // Pre-pass doctor info for better UX
+        intent.putExtra("doctor_id", treatment.examiner_id);
+        intent.putExtra("doctor_name", treatment.examiner_name);
+
+        startActivity(intent);
+    }
     @Override
     public void onDeleteClick(Treatment treatment) {
         db.collection("hospitals").document(hospitalId)

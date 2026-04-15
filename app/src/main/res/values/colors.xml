@@ -10,4 +10,6 @@
     <color name="hard_green">#4CAF50</color>
     <color name="soft_grey">#F5F5F5</color>
     <color name="hard_grey">#727272</color>
+    <color name="soft_red">#FFE3E3</color>
+    <color name="hard_red">#D33E3E</color>
 </resources>

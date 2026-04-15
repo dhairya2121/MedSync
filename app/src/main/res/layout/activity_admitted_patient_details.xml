@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,7 +7,9 @@
     android:background="#F8F9FA"
     tools:context=".activities.receptionist.AdmittedPatientDetails">
 
+    <!-- Header / Navbar Area -->
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white">
@@ -18,16 +20,18 @@
             app:title="Admitted Patient Details" />
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Scrollable Content Area: pinned between AppBar and Bottom Buttons -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="140dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:layout_below="@id/appBar"
+        android:layout_above="@+id/bottomActions">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="20dp">
 
             <!-- Profile Header -->
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -35,7 +39,6 @@
                 android:layout_height="wrap_content"
                 android:background="@color/white"
                 android:padding="24dp">
-
                 <TextView
                     android:id="@+id/tvProfileInitial"
                     android:layout_width="80dp"
@@ -49,7 +52,6 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
-
                 <TextView
                     android:id="@+id/tvPatientNameLarge"
                     android:layout_width="wrap_content"
@@ -64,6 +66,7 @@
                     app:layout_constraintTop_toBottomOf="@id/tvProfileInitial" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- Admission Info -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -82,12 +85,10 @@
                 app:cardElevation="0dp"
                 app:strokeColor="#E0E0E0"
                 app:strokeWidth="1dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-                    <!-- Custom field names to match your include logic -->
                     <include android:id="@+id/roomNo" layout="@layout/item_viewable_field" />
                     <include android:id="@+id/admittedDate" layout="@layout/item_viewable_field" />
                     <include android:id="@+id/gender" layout="@layout/item_viewable_field" />
@@ -95,18 +96,64 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- TREATMENTS SECTION -->
+            <TextView
+                android:id="@+id/tvTreatmentsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:text="Scheduled Operations"
+                android:textAllCaps="true"
+                android:textColor="#757575"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="visible" />
+
+            <LinearLayout
+                android:id="@+id/llTreatmentsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- BILLING SECTION -->
+            <TextView
+                android:id="@+id/tvBillTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:text="Billing &amp; Payments"
+                android:textAllCaps="true"
+                android:textColor="#757575"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="visible"/>
+
+            <include android:id="@+id/bill_card_container"
+                layout="@layout/item_bill_card"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:visibility="visible"/>
+
+            <!-- BOTTOM SPACER: Ensures the last card isn't touching the button edge -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="20dp"/>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Actions Area -->
+    <!-- Fixed Bottom Actions -->
     <LinearLayout
+        android:id="@+id/bottomActions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_alignParentBottom="true"
         android:background="@color/white"
-        android:elevation="8dp"
+        android:elevation="12dp"
         android:orientation="vertical">
-        <!-- Inside the Bottom Actions Area LinearLayout, above the discharge button -->
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnScheduleOperation"
             android:layout_width="match_parent"
@@ -118,22 +165,21 @@
             android:textSize="16sp"
             app:cornerRadius="8dp"
             android:backgroundTint="@color/hard_green" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDischarge"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:layout_margin="16dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:text="Discharge Patient"
             android:textAllCaps="false"
             android:textSize="16sp"
             app:cornerRadius="8dp"
             app:backgroundTint="#E53935" />
 
-        <include
-            android:id="@+id/footer"
-            layout="@layout/layout_footer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        <include layout="@layout/layout_footer" />
     </LinearLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</RelativeLayout>

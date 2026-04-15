@@ -1,5 +1,7 @@
 package com.example.medsync.activities.receptionist;
 
+import static com.example.medsync.utils.ViewUtils.isValidUid;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +16,7 @@ import com.example.medsync.adapters.TreatmentAdapter;
 import com.example.medsync.model.Patient;
 import com.example.medsync.model.Treatment;
 import com.example.medsync.utils.BaseActivity;
+import com.example.medsync.utils.ViewUtils;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -47,7 +50,8 @@ public class PatientDetails extends BaseActivity implements TreatmentAdapter.OnT
         setupBaseActivityNavbar("R", "Patient Info");
         setupBaseActivityFooter("home", "R");
 
-        if (patientId != null && !hospitalId.isEmpty()) {
+
+        if (isValidUid(patientId) && isValidUid(hospitalId)) {
             loadPatientData();
             loadPastTreatments();
         } else {
