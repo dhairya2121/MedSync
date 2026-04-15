@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FA"
+    tools:context=".activities.receptionist.DoctorDetails">
+
+    <!-- 1. Navbar at the very top -->
+    <include
+        android:id="@+id/navbar"
+        layout="@layout/layout_navbar"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 2. Footer at the very bottom -->
+    <include
+        android:id="@+id/footer"
+        layout="@layout/layout_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- 3. Remove Button pinned strictly above the Footer -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_remove_doctor"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        android:backgroundTint="#FFEBEE"
+        android:text="Remove Doctor"
+        android:textColor="#D32F2F"
+        app:cornerRadius="12dp"
+        app:layout_constraintBottom_toTopOf="@id/footer" />
+
+    <!-- 4. ScrollView filling the space between Navbar and Remove Button -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/btn_remove_doctor"
+        app:layout_constraintTop_toBottomOf="@id/navbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Profile Header -->
+            <TextView
+                android:id="@+id/tvProfileInitial"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_patient_profile_circle"
+                android:gravity="center"
+                android:text="D"
+                android:textColor="#1976D2"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvDoctorNameLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="12dp"
+                android:text="Dr. --"
+                android:textColor="@color/black"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Professional Details"
+                android:textColor="#757575"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textAllCaps="true" />
+
+            <!-- Fields -->
+            <include android:id="@+id/view_specialization" layout="@layout/item_viewable_field" />
+            <include android:id="@+id/view_exp" layout="@layout/item_viewable_field" />
+            <include android:id="@+id/view_fees" layout="@layout/item_viewable_field" />
+            <include android:id="@+id/view_reg_no" layout="@layout/item_viewable_field" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,6 +12,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MedSync">
         <activity
+            android:name=".activities.receptionist.CareTakerDetails"
+            android:exported="false" />
+        <activity
+            android:name=".activities.receptionist.ManageCareTakers"
+            android:exported="false" />
+        <activity
+            android:name=".activities.receptionist.AssistantDetails"
+            android:exported="false" />
+        <activity
+            android:name=".activities.receptionist.ManageAssistants"
+            android:exported="false" />
+        <activity
+            android:name=".activities.receptionist.DoctorDetails"
+            android:exported="false" />
+        <activity
+            android:name=".activities.receptionist.ManageDoctors"
+            android:exported="false" />
+        <activity
             android:name=".activities.receptionist.AdmitPatient"
             android:exported="false" />
         <activity

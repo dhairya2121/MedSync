@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.medsync.R;
+import com.example.medsync.model.Doctor;
 import com.example.medsync.model.Patient;
 import com.example.medsync.model.Treatment;
 import com.example.medsync.model.enums.TreatmentType;
@@ -83,7 +84,6 @@ public class Dashboard extends BaseActivity {
                             dashboardSection.setVisibility(View.VISIBLE);
                             btnAddHospital.setVisibility(View.GONE);
                             dashboardWatermark.setVisibility(View.GONE);
-
                             // Only reload all listeners if the hospital context actually changes
                             if (!hospitalId.equals(currentHospitalId)) {
                                 currentHospitalId = hospitalId;
@@ -142,6 +142,9 @@ public class Dashboard extends BaseActivity {
                 .addSnapshotListener((s, e) -> { if (s != null) tvDoctorCount.setText(String.valueOf(s.size())); }));
 
         findViewById(R.id.btnUsersPatients).setOnClickListener(v -> redirectToActivity(ManagePatients.class));
+        findViewById(R.id.btnUsersDoctors).setOnClickListener(v -> redirectToActivity(ManageDoctors.class));
+        findViewById(R.id.btnUsersAssistants).setOnClickListener(v -> redirectToActivity(ManageAssistants.class));
+        findViewById(R.id.btnUsersCareTakers).setOnClickListener(v -> redirectToActivity(ManageCareTakers.class));
     }
 
 

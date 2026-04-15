@@ -1,8 +1,18 @@
-package com.example.medsync.model;
+package com.example.medsync.model;import com.google.firebase.firestore.Exclude;
+
 public class Assistant {
+    @Exclude
+    public String id;
+    public String name;
+    public String gender;
+    public long age;
+    public long exp;
     public String hospital_id;
+    public String email;
+    public String phone;
+
     public Assistant() {}
-    public Assistant(String hospital_id) {
-        this.hospital_id = hospital_id;
-    }
+
+    @Exclude
+    public void setId(String id) { this.id = id; }
 }
