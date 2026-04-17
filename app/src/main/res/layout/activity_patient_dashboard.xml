@@ -38,7 +38,7 @@
 
             <!-- Recent Hospital Card -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/recent_card"
+                android:id="@+id/recent_hospital_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
@@ -48,12 +48,24 @@
                 app:strokeColor="#E0E0E0"
                 app:strokeWidth="1dp">
 
+                <TextView
+                    android:id="@+id/tvNoRecents"
+                    android:layout_width="wrap_content"
+                    android:layout_margin="20dp"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:layout_height="wrap_content"
+                    android:text="No Recent Treatments Found"
+                    android:textColor="#9E9E9E"
+                    android:textSize="20sp" />
+
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:visibility="visible"
                     android:id="@+id/btnRecentHospitalCard"
                     android:padding="24dp">
-
                     <TextView
                         android:id="@+id/tvRecentHospitalName"
                         android:layout_width="wrap_content"
@@ -98,6 +110,7 @@
 
             <!-- GRID SECTION -->
             <GridLayout
+                android:id="@+id/departments"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -105,19 +118,23 @@
                 android:useDefaultMargins="true"
                 android:alignmentMode="alignMargins">
 
-                <include layout="@layout/item_patient_dashboard_grid" />
-                <include layout="@layout/item_patient_dashboard_grid" />
-                <include layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/general" layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/heart"  layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/brain"  layout="@layout/item_patient_dashboard_grid" />
 
                 <!-- Row 2 -->
-                <include layout="@layout/item_patient_dashboard_grid" />
-                <include layout="@layout/item_patient_dashboard_grid" />
-                <include layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/child"  layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/bone"  layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/eye"  layout="@layout/item_patient_dashboard_grid" />
 
                 <!-- Row 3 -->
-                <include layout="@layout/item_patient_dashboard_grid" />
-                <include layout="@layout/item_patient_dashboard_grid" />
-                <include layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/ear"  layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/lungs"  layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/stomach"  layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/kidney"  layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/hormones"  layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/skin"  layout="@layout/item_patient_dashboard_grid" />
+                <include android:id="@+id/surgery"  layout="@layout/item_patient_dashboard_grid" />
 
             </GridLayout>
 
