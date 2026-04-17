@@ -12,6 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MedSync">
         <activity
+            android:name=".activities.patient.HospitalDetails"
+            android:exported="false" />
+        <activity
+            android:name=".activities.patient.Treatments"
+            android:exported="false" />
+        <activity
+            android:name=".activities.patient.SearchHospitals"
+            android:exported="false" />
+        <activity
             android:name=".activities.receptionist.CareTakerDetails"
             android:exported="false" />
         <activity

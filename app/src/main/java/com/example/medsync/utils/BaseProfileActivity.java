@@ -22,6 +22,7 @@ import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
@@ -123,7 +124,7 @@ public abstract class BaseProfileActivity extends BaseActivity {
         View passwordCard = findViewById(R.id.receptionist_password_card);
         setupPasswordField(passwordCard);
         ViewUtils.setupEditableInfoCard(this, passwordCard,
-                R.drawable.ic_passkey, "Password", "********",
+                R.drawable.ic_passkey, "Password", "******",
                 val -> updateAuthPassword(val, passwordCard)); // Password never cached
     }
     private void loadAuthProfileData() {
@@ -144,58 +145,94 @@ public abstract class BaseProfileActivity extends BaseActivity {
                 .addOnFailureListener(e -> Log.e("Profile", "Firestore failed", e));
     }
     private void updateAuthName(String newName, View card) {
+        // 1. Update name in Firebase Auth Profile
         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                 .setDisplayName(newName).build();
 
         user.updateProfile(profileUpdates).addOnCompleteListener(task -> {
-            ViewUtils.setInputState(this, card, task.isSuccessful() ? "IDLE" : "ERROR");
             if (task.isSuccessful()) {
-                Toast.makeText(this, "Name updated", Toast.LENGTH_SHORT).show();
+                // 2. Update name in Firestore Collection (e.g., db/patients/uid/name)
+                db.collection(getCollectionName()).document(user.getUid())
+                        .update("name", newName)
+                        .addOnCompleteListener(dbTask -> {
+                            // Update UI state based on database success
+                            ViewUtils.setInputState(this, card, dbTask.isSuccessful() ? "IDLE" : "ERROR");
+
+                            if (dbTask.isSuccessful()) {
+                                Toast.makeText(this, "Name updated everywhere", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Log.e("ProfileUpdate", "Firestore update failed", dbTask.getException());
+                                Toast.makeText(this, "Auth updated, but Database failed", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            } else {
+                ViewUtils.setInputState(this, card, "ERROR");
+                Toast.makeText(this, "Auth update failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void updateAuthEmail(String newEmail, View card) {
-        user.verifyBeforeUpdateEmail(newEmail).addOnCompleteListener(task -> {
-            ViewUtils.setInputState(this, card, task.isSuccessful() ? "IDLE" : "ERROR");
-            if (task.isSuccessful()) {
+        //1. First, update Firestore so the DB stays in sync with the pending change
+        db.collection(getCollectionName()).document(user.getUid())
+                .update("email", newEmail)
+                .addOnCompleteListener(dbTask -> {
+                    if (dbTask.isSuccessful()) {
+                        // 2. Attempt to update Firebase Auth
+                        user.verifyBeforeUpdateEmail(newEmail).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                ViewUtils.setInputState(this, card, "IDLE");
+                                Toast.makeText(this, "Verification link sent to " + newEmail, Toast.LENGTH_LONG).show();
 
-                Toast.makeText(this, "Verification sent to " + newEmail, Toast.LENGTH_LONG).show();
-                Toast.makeText(this," Please Login again",Toast.LENGTH_SHORT).show();
-                invalidateProfileCache();
-                mAuth.signOut();
-                startActivity(new Intent(this, LoginActivity.class)
-                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-                finish();
-            } else {
-                Exception ex = task.getException();
-                Log.e("EmailUpdate", "Failed: " + (ex != null ? ex.getMessage() : "null"));
-                handleAuthError(ex);
-            }
-        });
+                                // 3. Forces logout because Auth state is now "pending"
+                                invalidateProfileCache();
+                                mAuth.signOut();
+                                Toast.makeText(this, "Please verify and login again", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(this, LoginActivity.class)
+                                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                                finish();
+                            } else {
+                                // Check if re-authentication is needed
+                                if (task.getException() instanceof FirebaseAuthRecentLoginRequiredException) {
+                                    showReauthenticateDialog(newEmail, card);
+                                } else {
+                                    ViewUtils.setInputState(this, card, "ERROR");
+                                    handleAuthError(task.getException());
+                                }
+                            }
+                        });
+                    } else {
+                        ViewUtils.setInputState(this, card, "ERROR");
+                        Toast.makeText(this, "Database sync failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
-    private void reauthenticateAndUpdateEmail(String newEmail, View card) {
-        // Prompt user for password first
+
+    private void showReauthenticateDialog(String newEmail, View card) {
         EditText passInput = new EditText(this);
         passInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        passInput.setHint("Enter current password");
+        passInput.setHint("Current Password");
 
         new AlertDialog.Builder(this)
-                .setTitle("Re-authenticate")
+                .setTitle("Security Check")
+                .setMessage("Please enter your password to change your email.")
                 .setView(passInput)
-                .setPositiveButton("Confirm", (d, w) -> {
+                .setPositiveButton("Verify", (d, w) -> {
                     String password = passInput.getText().toString();
-                    AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
+                    if (password.isEmpty()) return;
 
-                    user.reauthenticate(credential).addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            updateAuthEmail(newEmail, card); // now call safely
+                    AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
+                    user.reauthenticate(credential).addOnCompleteListener(reAuthTask -> {
+                        if (reAuthTask.isSuccessful()) {
+                            // Now that we are re-authenticated, try the update again
+                            updateAuthEmail(newEmail, card);
                         } else {
-                            Toast.makeText(this, "Re-auth failed", Toast.LENGTH_SHORT).show();
+                            ViewUtils.setInputState(this, card, "ERROR");
+                            Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
                         }
                     });
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton("Cancel", (d, w) -> ViewUtils.setInputState(this, card, "IDLE"))
                 .show();
     }
 
@@ -239,7 +276,27 @@ public abstract class BaseProfileActivity extends BaseActivity {
                 .build();
         PhoneAuthProvider.verifyPhoneNumber(options);
     }
-
+    private void updateUserPhoneCredential(PhoneAuthCredential credential, View card) {
+        user.updatePhoneNumber(credential).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                // ✅ Sync Phone to Firestore
+                String newPhone = user.getPhoneNumber(); // Get normalized phone from Auth
+                db.collection(getCollectionName()).document(user.getUid())
+                        .update("phone", newPhone)
+                        .addOnCompleteListener(dbTask -> {
+                            ViewUtils.setInputState(this, card, dbTask.isSuccessful() ? "IDLE" : "ERROR");
+                            if (dbTask.isSuccessful()) {
+                                Toast.makeText(this, "Phone updated everywhere", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(this, "Auth updated, but Database failed", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            } else {
+                ViewUtils.setInputState(this, card, "ERROR");
+                handleAuthError(task.getException());
+            }
+        });
+    }
     private void showOtpDialog(View card) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter OTP");
@@ -255,12 +312,6 @@ public abstract class BaseProfileActivity extends BaseActivity {
         builder.show();
     }
 
-    private void updateUserPhoneCredential(PhoneAuthCredential credential, View card) {
-        user.updatePhoneNumber(credential).addOnCompleteListener(task -> {
-            ViewUtils.setInputState(this, card, task.isSuccessful() ? "IDLE" : "ERROR");
-            if (task.isSuccessful()) Toast.makeText(this, "Phone updated", Toast.LENGTH_SHORT).show();
-        });
-    }
 
     private void handleAuthError(Exception e) {
         if (e instanceof com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException) {

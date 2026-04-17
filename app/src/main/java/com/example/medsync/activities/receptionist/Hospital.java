@@ -192,8 +192,12 @@ public class Hospital extends BaseActivity {
             navigateToSearch();
             return;
         }
-        db.collection("hospitals").document(hospitalId).get()
-                .addOnSuccessListener(v -> {
+        db.collection("hospitals").document(hospitalId)
+                .addSnapshotListener((v,err) -> {
+                    if(err!=null){
+                        Log.e("Hospital", "Error fetching details", err);return;
+                    }
+
                     if (v.exists()) {
                         ViewUtils.setupEditableInfoCard(this, nameCard,
                                 R.drawable.ic_filled_user, "Hospital Name",
@@ -235,8 +239,7 @@ public class Hospital extends BaseActivity {
                     } else {
                         navigateToSearch();
                     }
-                })
-                .addOnFailureListener(e -> Log.e("Hospital", "Error fetching details", e));
+                });
     }
 
     // ── Fetch rooms subcollection ─────────────────────────────────────────────

@@ -167,6 +167,7 @@ public class ViewUtils {
         if (role != null && btnRoleBased != null) {
             switch (role) {
                 case "P":
+                    btnRoleBased.setImageResource(R.drawable.ic_search_plus);break;
                 case "D":
                 case "C":
                 case "A":
@@ -218,6 +219,9 @@ public class ViewUtils {
                         case "R":
                             targetActivity = com.example.medsync.activities.receptionist.Hospital.class;
                             break;
+                        case "P":
+                            targetActivity = com.example.medsync.activities.patient.SearchHospitals.class;
+
                         // case "D": targetActivity = DoctorActivity.class; break;
                     }
                 }

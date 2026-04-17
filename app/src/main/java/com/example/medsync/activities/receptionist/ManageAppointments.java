@@ -30,8 +30,8 @@ public class ManageAppointments extends BaseActivity implements AppointmentAdapt
         setContentView(R.layout.activity_manage_appointments);
 
         // 1. Setup UI components from BaseActivity
-        applyEdgeToEdgePadding(findViewById(R.id.toolbar)); // Adjust padding if needed
-        setupBaseActivityNavbar("R", "Manage Appointments");
+        // Apply padding to the root layout ID 'main' to handle status and nav bars correctly
+        applyEdgeToEdgePadding(findViewById(R.id.main)); 
         setupBaseActivityFooter("home", "R");
 
         // 2. Get Hospital ID
@@ -81,8 +81,6 @@ public class ManageAppointments extends BaseActivity implements AppointmentAdapt
                     adapter.setTreatments(list);
                 });
     }
-
-    // Add this method to ManageAppointments.java
 
     @Override
     public void onAdmitClick(Treatment treatment) {
