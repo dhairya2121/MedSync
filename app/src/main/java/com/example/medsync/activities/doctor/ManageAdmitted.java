@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ManageAdmitted extends BaseActivity {
+    //start this
     private RecyclerView rvAdmitted;
     private PatientAdapter adapter;
     private List<Patient> patientList = new ArrayList<>();

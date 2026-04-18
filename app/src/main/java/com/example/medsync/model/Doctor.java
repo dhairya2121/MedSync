@@ -14,7 +14,7 @@ public class Doctor {
     public long exp;
     public long appointmentFee;
     public List<TimeSlot> working_slots;
-    public List<Timestamp> booked_slots;
+    public List<BookedSlot> booked_slots;
 
     public Doctor() {}
 

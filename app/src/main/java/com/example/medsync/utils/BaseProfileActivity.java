@@ -1,7 +1,5 @@
 package com.example.medsync.utils;
 
-import static android.opengl.ETC1.isValid;
-
 import static com.example.medsync.utils.ViewUtils.isValidUid;
 
 import android.content.Intent;
@@ -11,7 +9,6 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -38,13 +35,29 @@ public abstract class BaseProfileActivity extends BaseActivity {
     protected FirebaseAuth mAuth;
     protected FirebaseFirestore db;
     protected FirebaseUser user;
+
     private static final String PREF_NAME = "profile_cache";
     private static final String KEY_NAME = "cached_name";
     private static final String KEY_EMAIL = "cached_email";
     private static final String KEY_PHONE = "cached_phone";
-    private static final long CACHE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+    private static final long CACHE_EXPIRY_MS = 10 * 60 * 1000;
     private static final String KEY_CACHE_TIME = "cache_time";
 
+    private String mVerificationId;
+    private PhoneAuthProvider.ForceResendingToken mResendToken;
+
+    protected abstract String getCollectionName();
+    protected abstract String getUserRole();
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        user = mAuth.getCurrentUser();
+    }
+
+    // --- CACHE LOGIC ---
     private void saveProfileCache(String name, String email, String phone) {
         getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit()
                 .putString(KEY_NAME, name)
@@ -55,205 +68,102 @@ public abstract class BaseProfileActivity extends BaseActivity {
     }
 
     private boolean isCacheValid() {
-        long savedTime = getSharedPreferences(PREF_NAME, MODE_PRIVATE)
-                .getLong(KEY_CACHE_TIME, 0);
+        long savedTime = getSharedPreferences(PREF_NAME, MODE_PRIVATE).getLong(KEY_CACHE_TIME, 0);
         return (System.currentTimeMillis() - savedTime) < CACHE_EXPIRY_MS;
     }
 
-    private void loadFromCache(SharedPreferences prefs) {
-        String cachedName  = prefs.getString(KEY_NAME, "Set Name");
-        String cachedEmail = prefs.getString(KEY_EMAIL, "");
-        String cachedPhone = prefs.getString(KEY_PHONE, "Add Phone");
-        bindProfileViews(cachedName, cachedEmail, cachedPhone);
+    protected void invalidateProfileCache() {
+        getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit().remove(KEY_CACHE_TIME).apply();
     }
 
-    // ✅ Call this whenever a field is successfully updated to keep cache in sync
-    public void invalidateProfileCache() {
-        getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit()
-                .remove(KEY_CACHE_TIME) // Forces re-fetch next open
-                .apply();
-    }
-    private String mVerificationId;
-    private PhoneAuthProvider.ForceResendingToken mResendToken;
-
-    protected abstract String getCollectionName();
-    protected abstract String getUserRole();
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // Note: Make sure activity_receptionist_profile.xml uses generic IDs
-        // if this is truly a "Base" layout, or handle IDs in child classes.
-        setContentView(R.layout.activity_base_profile);
-
-        mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-        user = mAuth.getCurrentUser();
-        String role=getUserRole();
-        applyEdgeToEdgePadding(findViewById(R.id.main));
-        setupBaseActivityFooter("profile", role);
-
-        setupLogout();
-        if (user != null) {
-            loadAuthProfileData();
-        }
-        MaterialButton btn_exit_hospital = findViewById(R.id.btn_exit_hospital);
-        if (btn_exit_hospital != null) {
-            // Only show for Doctors (D) and Assistants (A)
-            if ("D".equals(role) || "A".equals(role)) {
-                String collectionName=role=="D"?"doctors":role=="A"?"assistants":"";
-                db.collection(collectionName).document(user.getUid())
-                                .get().addOnSuccessListener(doc-> {
-                            if (doc.exists()) {
-                                if (isValidUid(doc.getString("hospital_id"))) {
-                                    btn_exit_hospital.setVisibility(View.VISIBLE);
-                                    btn_exit_hospital.setOnClickListener(v -> {
-                                        new AlertDialog.Builder(this)
-                                                .setTitle("Exit Hospital")
-                                                .setMessage("Are you sure you want to leave this hospital? You will no longer be able to manage its data.")
-                                                .setPositiveButton("Exit", (dialog, which) -> exitHospital(role))
-                                                .setNegativeButton("Cancel", null)
-                                                .show();
-                                    });
-                                } else {
-                                    btn_exit_hospital.setVisibility(View.GONE);
-                                }
-                            }
-                        });
-            } else {
-                btn_exit_hospital.setVisibility(View.GONE);
-            }
-        }
-    }
-
-    private void exitHospital(String role) {
+    // --- DATA LOADING ---
+    protected void loadAuthProfileData(View nameCard, View emailCard, View phoneCard, View passCard) {
         if (user == null) return;
-        MaterialButton btn_exit_hospital = findViewById(R.id.btn_exit_hospital);
-        btn_exit_hospital.setEnabled(true);
-        String collectionName=role=="D"?"doctors":role=="A"?"assistants":"";
-        if(collectionName.isEmpty())return;
-        /// for Doctor, cancel all upcoming treatments! and for assisitants also
-        db.collection(collectionName).document(user.getUid())
-                .update("hospital_id", "")
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Exited hospital", Toast.LENGTH_SHORT).show();
-                    btn_exit_hospital.setEnabled(false);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Hospital", "Failed to exit hospital", e);
-                    Toast.makeText(this, "Failed to exit hospital", Toast.LENGTH_SHORT).show();
-                    btn_exit_hospital.setEnabled(true);
-                });
 
-    }
-
-    private void bindProfileViews(String name, String email, String phone) {
-        ViewUtils.setupEditableInfoCard(this, findViewById(R.id.profile_name_card),
-                R.drawable.ic_filled_user, "Full Name",
-                (name != null && !name.isEmpty()) ? name : "Set Name",
-                val -> {
-                    updateAuthName(val, findViewById(R.id.profile_name_card));
-                    invalidateProfileCache(); // ✅ Bust cache on update
-                });
-
-        ViewUtils.setupEditableInfoCard(this, findViewById(R.id.profile_email_card),
-                R.drawable.ic_mail, "Email Address", email,
-                val -> {
-                    updateAuthEmail(val, findViewById(R.id.profile_email_card));
-                    invalidateProfileCache();
-                });
-
-        ViewUtils.setupEditableInfoCard(this, findViewById(R.id.profile_phone_card),
-                R.drawable.ic_contact_book, "+91 9999 9999 99",
-                (isValidUid(phone)) ? phone : "Add Phone",
-                val -> {
-                    updateAuthPhone(val, findViewById(R.id.profile_phone_card));
-                    invalidateProfileCache();
-                });
-
-        View passwordCard = findViewById(R.id.profile_password_card);
-        setupPasswordField(passwordCard);
-        ViewUtils.setupEditableInfoCard(this, passwordCard,
-                R.drawable.ic_passkey, "Password", "******",
-                val -> updateAuthPassword(val, passwordCard)); // Password never cached
-    }
-    private void loadAuthProfileData() {
         SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-
         if (isCacheValid()) {
-            loadFromCache(prefs);
+            bindViewsFromData(prefs.getString(KEY_NAME, ""), prefs.getString(KEY_EMAIL, ""),
+                    prefs.getString(KEY_PHONE, ""), nameCard, emailCard, phoneCard, passCard);
         } else {
-            String authName  = user.getDisplayName();
-            String authEmail = user.getEmail();
-            String authPhone = user.getPhoneNumber();
-            saveProfileCache(authName, authEmail, authPhone);
-            bindProfileViews(authName, authEmail, authPhone);
+            String n = user.getDisplayName();
+            String e = user.getEmail();
+            String p = user.getPhoneNumber();
+            saveProfileCache(n, e, p);
+            bindViewsFromData(n, e, p, nameCard, emailCard, phoneCard, passCard);
         }
 
         db.collection(getCollectionName()).document(user.getUid()).get()
-                .addOnSuccessListener(this::onExtraDataLoaded)
-                .addOnFailureListener(e -> Log.e("Profile", "Firestore failed", e));
+                .addOnSuccessListener(this::onExtraDataLoaded);
     }
-    private void updateAuthName(String newName, View card) {
-        // 1. Update name in Firebase Auth Profile
+
+    protected void bindViewsFromData(String name, String email, String phone, View nameCard, View emailCard, View phoneCard, View passCard) {
+        ViewUtils.setupEditableInfoCard(this, nameCard, R.drawable.ic_filled_user, "Full Name",
+                (name != null && !name.isEmpty()) ? name : "Set Name", val -> {
+                    ViewUtils.setInputState(this, nameCard, "LOADING");
+                    updateAuthName(val, nameCard);
+                });
+
+        ViewUtils.setupEditableInfoCard(this, emailCard, R.drawable.ic_mail, "Email", email, val -> {
+            ViewUtils.setInputState(this, emailCard, "LOADING");
+            updateAuthEmail(val, emailCard);
+        });
+
+        ViewUtils.setupEditableInfoCard(this, phoneCard, R.drawable.ic_contact_book, "Phone",
+                (isValidUid(phone)) ? phone : "Add Phone", val -> {
+                    ViewUtils.setInputState(this, phoneCard, "LOADING");
+                    updateAuthPhone(val, phoneCard);
+                });
+
+        setupPasswordField(passCard);
+        ViewUtils.setupEditableInfoCard(this, passCard, R.drawable.ic_passkey, "Password", "******", val -> {
+            ViewUtils.setInputState(this, passCard, "LOADING");
+            updateAuthPassword(val, passCard);
+        });
+    }
+
+    // --- UPDATE LOGIC ---
+
+    protected void updateAuthName(String newName, View card) {
         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                 .setDisplayName(newName).build();
 
         user.updateProfile(profileUpdates).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // 2. Update name in Firestore Collection (e.g., db/patients/uid/name)
-                db.collection(getCollectionName()).document(user.getUid())
-                        .update("name", newName)
+                db.collection(getCollectionName()).document(user.getUid()).update("name", newName)
                         .addOnCompleteListener(dbTask -> {
-                            // Update UI state based on database success
                             ViewUtils.setInputState(this, card, dbTask.isSuccessful() ? "IDLE" : "ERROR");
-
                             if (dbTask.isSuccessful()) {
-                                Toast.makeText(this, "Name updated everywhere", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Log.e("ProfileUpdate", "Firestore update failed", dbTask.getException());
-                                Toast.makeText(this, "Auth updated, but Database failed", Toast.LENGTH_SHORT).show();
+                                invalidateProfileCache();
+                                Toast.makeText(this, "Name Updated", Toast.LENGTH_SHORT).show();
                             }
                         });
             } else {
                 ViewUtils.setInputState(this, card, "ERROR");
-                Toast.makeText(this, "Auth update failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void updateAuthEmail(String newEmail, View card) {
-        //1. First, update Firestore so the DB stays in sync with the pending change
-        db.collection(getCollectionName()).document(user.getUid())
-                .update("email", newEmail)
+    protected void updateAuthEmail(String newEmail, View card) {
+        // Sync DB first
+        db.collection(getCollectionName()).document(user.getUid()).update("email", newEmail)
                 .addOnCompleteListener(dbTask -> {
                     if (dbTask.isSuccessful()) {
-                        // 2. Attempt to update Firebase Auth
                         user.verifyBeforeUpdateEmail(newEmail).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 ViewUtils.setInputState(this, card, "IDLE");
-                                Toast.makeText(this, "Verification link sent to " + newEmail, Toast.LENGTH_LONG).show();
-
-                                // 3. Forces logout because Auth state is now "pending"
                                 invalidateProfileCache();
                                 mAuth.signOut();
-                                Toast.makeText(this, "Please verify and login again", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(this, LoginActivity.class)
-                                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-                                finish();
+                                Toast.makeText(this, "Verify link sent to " + newEmail + ". Please login again.", Toast.LENGTH_LONG).show();
+                                finishToLogin();
+                            } else if (task.getException() instanceof FirebaseAuthRecentLoginRequiredException) {
+                                showReauthenticateDialog(newEmail, card);
                             } else {
-                                // Check if re-authentication is needed
-                                if (task.getException() instanceof FirebaseAuthRecentLoginRequiredException) {
-                                    showReauthenticateDialog(newEmail, card);
-                                } else {
-                                    ViewUtils.setInputState(this, card, "ERROR");
-                                    handleAuthError(task.getException());
-                                }
+                                ViewUtils.setInputState(this, card, "ERROR");
+                                handleAuthError(task.getException());
                             }
                         });
                     } else {
                         ViewUtils.setInputState(this, card, "ERROR");
-                        Toast.makeText(this, "Database sync failed", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -261,85 +171,59 @@ public abstract class BaseProfileActivity extends BaseActivity {
     private void showReauthenticateDialog(String newEmail, View card) {
         EditText passInput = new EditText(this);
         passInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        passInput.setHint("Current Password");
 
         new AlertDialog.Builder(this)
                 .setTitle("Security Check")
-                .setMessage("Please enter your password to change your email.")
+                .setMessage("Please enter password to verify identity.")
                 .setView(passInput)
                 .setPositiveButton("Verify", (d, w) -> {
-                    String password = passInput.getText().toString();
-                    if (password.isEmpty()) return;
-
-                    AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
-                    user.reauthenticate(credential).addOnCompleteListener(reAuthTask -> {
-                        if (reAuthTask.isSuccessful()) {
-                            // Now that we are re-authenticated, try the update again
-                            updateAuthEmail(newEmail, card);
-                        } else {
-                            ViewUtils.setInputState(this, card, "ERROR");
-                            Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
-                        }
+                    AuthCredential cred = EmailAuthProvider.getCredential(user.getEmail(), passInput.getText().toString());
+                    user.reauthenticate(cred).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) updateAuthEmail(newEmail, card);
+                        else ViewUtils.setInputState(this, card, "ERROR");
                     });
                 })
                 .setNegativeButton("Cancel", (d, w) -> ViewUtils.setInputState(this, card, "IDLE"))
                 .show();
     }
 
-    private void updateAuthPassword(String newPassword, View card) {
-        user.updatePassword(newPassword).addOnCompleteListener(task -> {
-            ViewUtils.setInputState(this, card, task.isSuccessful() ? "IDLE" : "ERROR");
-            if (task.isSuccessful()) {
-                Toast.makeText(this, "Password changed", Toast.LENGTH_SHORT).show();
-            } else {
-                handleAuthError(task.getException());
-            }
-        });
-    }
-
-    private void updateAuthPhone(String newPhone, View card) {
-        newPhone=newPhone.trim();
+    protected void updateAuthPhone(String newPhone, View card) {
         PhoneAuthOptions options = PhoneAuthOptions.newBuilder(mAuth)
-                .setPhoneNumber(newPhone)
+                .setPhoneNumber(newPhone.trim())
                 .setTimeout(60L, TimeUnit.SECONDS)
                 .setActivity(this)
                 .setCallbacks(new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                    @Override
-                    public void onVerificationCompleted(PhoneAuthCredential credential) {
-                        updateUserPhoneCredential(credential, card);
-                    }
-
-                    @Override
-                    public void onVerificationFailed(FirebaseException e) {
+                    @Override public void onVerificationCompleted(PhoneAuthCredential c) { updateUserPhoneCredential(c, card); }
+                    @Override public void onVerificationFailed(FirebaseException e) {
                         ViewUtils.setInputState(BaseProfileActivity.this, card, "ERROR");
-                        // This is where "BILLING NOT ENABLED" triggers if using a non-test number
-                        Toast.makeText(BaseProfileActivity.this, "Failed: Use Test Numbers or Enable Billing", Toast.LENGTH_LONG).show();
+                        Toast.makeText(BaseProfileActivity.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
                     }
-
-                    @Override
-                    public void onCodeSent(String verificationId, PhoneAuthProvider.ForceResendingToken token) {
-                        mVerificationId = verificationId;
-                        mResendToken = token;
+                    @Override public void onCodeSent(String vId, PhoneAuthProvider.ForceResendingToken t) {
+                        mVerificationId = vId;
                         showOtpDialog(card);
                     }
-                })
-                .build();
+                }).build();
         PhoneAuthProvider.verifyPhoneNumber(options);
     }
+
+    private void showOtpDialog(View card) {
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        new AlertDialog.Builder(this).setTitle("Enter OTP").setView(input)
+                .setPositiveButton("Verify", (d, w) -> {
+                    updateUserPhoneCredential(PhoneAuthProvider.getCredential(mVerificationId, input.getText().toString()), card);
+                })
+                .setNegativeButton("Cancel", (d, w) -> ViewUtils.setInputState(this, card, "IDLE"))
+                .show();
+    }
+
     private void updateUserPhoneCredential(PhoneAuthCredential credential, View card) {
         user.updatePhoneNumber(credential).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // ✅ Sync Phone to Firestore
-                String newPhone = user.getPhoneNumber(); // Get normalized phone from Auth
-                db.collection(getCollectionName()).document(user.getUid())
-                        .update("phone", newPhone)
+                db.collection(getCollectionName()).document(user.getUid()).update("phone", user.getPhoneNumber())
                         .addOnCompleteListener(dbTask -> {
                             ViewUtils.setInputState(this, card, dbTask.isSuccessful() ? "IDLE" : "ERROR");
-                            if (dbTask.isSuccessful()) {
-                                Toast.makeText(this, "Phone updated everywhere", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(this, "Auth updated, but Database failed", Toast.LENGTH_SHORT).show();
-                            }
+                            invalidateProfileCache();
                         });
             } else {
                 ViewUtils.setInputState(this, card, "ERROR");
@@ -347,46 +231,47 @@ public abstract class BaseProfileActivity extends BaseActivity {
             }
         });
     }
-    private void showOtpDialog(View card) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter OTP");
-        EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        builder.setView(input);
 
-        builder.setPositiveButton("Verify", (dialog, which) -> {
-            PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId, input.getText().toString());
-            updateUserPhoneCredential(credential, card);
+    protected void updateAuthPassword(String newPass, View card) {
+        user.updatePassword(newPass).addOnCompleteListener(task -> {
+            ViewUtils.setInputState(this, card, task.isSuccessful() ? "IDLE" : "ERROR");
+            if (!task.isSuccessful()) {
+                handleAuthError(task.getException());
+            }
         });
-        builder.setNegativeButton("Cancel", (dialog, which) -> ViewUtils.setInputState(this, card, "IDLE"));
-        builder.show();
     }
 
-
-    private void handleAuthError(Exception e) {
-        if (e instanceof com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException) {
-            Toast.makeText(this, "Please re-login to change sensitive data", Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(this, "Error: " + e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void setupPasswordField(View card) {
+    // --- HELPERS ---
+    protected void setupPasswordField(View card) {
         EditText et = card.findViewById(R.id.edit_text_input);
         if (et != null) et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
     }
 
-    private void setupLogout() {
-        View logoutBtn = findViewById(R.id.logout);
-        if (logoutBtn != null) {
-            logoutBtn.setOnClickListener(v -> {
-                invalidateProfileCache(); // ✅ Clear stale cache on logout
-                mAuth.signOut();
-                startActivity(new Intent(this, LoginActivity.class)
-                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-                finish();
-            });
-        }
+    protected void setupLogout(View logoutBtn) {
+        if (logoutBtn != null) logoutBtn.setOnClickListener(v -> {
+            invalidateProfileCache();
+            mAuth.signOut();
+            finishToLogin();
+        });
+    }
+
+    private void finishToLogin() {
+        startActivity(new Intent(this, LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+        finish();
+    }
+
+    protected void exitHospitalLogic(View btn, String role) {
+        String col = role.equals("D") ? "doctors" : "assistants";
+        db.collection(col).document(user.getUid()).update("hospital_id", "")
+                .addOnSuccessListener(a -> {
+                    invalidateProfileCache();
+                    Toast.makeText(this, "Exited Hospital", Toast.LENGTH_SHORT).show();
+                });
+        btn.setEnabled(false);
+    }
+
+    private void handleAuthError(Exception e) {
+        Toast.makeText(this, "Auth Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     protected void onExtraDataLoaded(DocumentSnapshot doc) {}

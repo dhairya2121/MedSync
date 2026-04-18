@@ -313,38 +313,47 @@ public class ViewUtils {
         // Initialize to IDLE
         setInputState(activity, root, "IDLE");
     }
-    public static void setInputState(Activity activity, View root, String state) {
-        EditText editTextInput = root.findViewById(R.id.edit_text_input);
-        ImageView btnEdit = root.findViewById(R.id.btn_edit);
-        ImageView btnSave = root.findViewById(R.id.btn_save);
-        ProgressBar progressSaving = root.findViewById(R.id.progress_saving);
-        ImageView iconError = root.findViewById(R.id.icon_error);
+    // Add/Update this in ViewUtils.java
+    public static void setInputState(Context context, View card, String state) {
+        if (card == null) return;
 
-        btnEdit.setVisibility(View.GONE);
-        btnSave.setVisibility(View.GONE);
-        progressSaving.setVisibility(View.GONE);
-        iconError.setVisibility(View.GONE);
+        View btnEdit = card.findViewById(R.id.btn_edit);
+        View btnSave = card.findViewById(R.id.btn_save);
+        View progress = card.findViewById(R.id.progress_saving);
+        View iconError = card.findViewById(R.id.icon_error);
+        EditText et = card.findViewById(R.id.edit_text_input);
 
-        switch (state) {
+        // Reset all to GONE first
+        if (btnEdit != null) btnEdit.setVisibility(View.GONE);
+        if (btnSave != null) btnSave.setVisibility(View.GONE);
+        if (progress != null) progress.setVisibility(View.GONE);
+        if (iconError != null) iconError.setVisibility(View.GONE);
+
+        switch (state.toUpperCase()) {
             case "IDLE":
-                btnEdit.setVisibility(View.VISIBLE);
-                makeEditable(activity, editTextInput, false);
+                if (btnEdit != null) btnEdit.setVisibility(View.VISIBLE);
+                if (et != null) {
+                    et.setEnabled(false);
+                    et.setFocusable(false);
+                }
                 break;
             case "EDITING":
-                btnSave.setVisibility(View.VISIBLE);
-                makeEditable(activity, editTextInput, true);
+                if (btnSave != null) btnSave.setVisibility(View.VISIBLE);
+                if (et != null) {
+                    et.setEnabled(true);
+                    et.setFocusableInTouchMode(true);
+                    et.requestFocus();
+                }
                 break;
-            case "SAVING":
-                progressSaving.setVisibility(View.VISIBLE);
-                makeEditable(activity, editTextInput, false);
+            case "LOADING":
+                if (progress != null) progress.setVisibility(View.VISIBLE);
                 break;
             case "ERROR":
-                iconError.setVisibility(View.VISIBLE);
-                makeEditable(activity, editTextInput, false);
+                if (iconError != null) iconError.setVisibility(View.VISIBLE);
+                if (btnEdit != null) btnEdit.setVisibility(View.VISIBLE);
                 break;
         }
     }
-
     private static void makeEditable(Activity activity, EditText et, boolean canEdit) {
         et.setFocusable(canEdit);
         et.setFocusableInTouchMode(canEdit);

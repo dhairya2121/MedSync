@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.example.medsync.R;
 import com.example.medsync.model.Bill;
+import com.example.medsync.model.BookedSlot;
 import com.example.medsync.model.Doctor;
 import com.example.medsync.model.TimeSlot;
 import com.example.medsync.model.Treatment;
@@ -37,7 +38,7 @@ public class ScheduleAppointment extends BaseActivity {
 
     private FirebaseFirestore db;
     private String hospitalId, doctorName, doctorId;
-    private List<Timestamp> globalBookedSlots;
+    private List<BookedSlot> globalBookedSlots;
     private GridLayout gridTimeSlots;
     private long selectedDateMillis;
     private MaterialButton lastSelectedBtn = null;
@@ -104,7 +105,7 @@ public class ScheduleAppointment extends BaseActivity {
                     if (currentDoctor != null) {
                         this.hospitalId = currentDoctor.hospital_id;
                         this.doctorName = currentDoctor.name;
-                        this.globalBookedSlots = currentDoctor.booked_slots != null ? currentDoctor.booked_slots : new ArrayList<>();
+                        this.globalBookedSlots = currentDoctor.booked_slots != null ? currentDoctor.booked_slots : new ArrayList<BookedSlot>();
                         filterAndRenderSlots();
                     }
                 });
@@ -125,8 +126,8 @@ public class ScheduleAppointment extends BaseActivity {
 
         // Identify which slots (by start time string) are booked on THIS specific date
         List<String> bookedTimesForThisDate = new ArrayList<>();
-        for (Timestamp ts : globalBookedSlots) {
-            Date bookedDate = ts.toDate();
+        for (BookedSlot ts : globalBookedSlots) {
+            Date bookedDate = ts.start.toDate();
             if (bookedDate.compareTo(startOfDay) >= 0 && bookedDate.before(endOfDay)) {
                 bookedTimesForThisDate.add(timeFormat.format(bookedDate));
             }
@@ -225,10 +226,10 @@ public class ScheduleAppointment extends BaseActivity {
                 .collection("treatments").add(t)
                 .addOnSuccessListener(docRef -> {
                     String treatmentId = docRef.getId();
-
+                    BookedSlot bs=new BookedSlot(finalTimestamp,treatmentId);
                     // 2. Update doctor's booked_slots using arrayUnion
                     db.collection("doctors").document(doctorId)
-                            .update("booked_slots", FieldValue.arrayUnion(finalTimestamp))
+                            .update("booked_slots", FieldValue.arrayUnion(bs))
                             .addOnSuccessListener(aVoid -> {
 
                                 // 3. Create a Bill with the SAME ID as the Treatment

@@ -161,6 +161,33 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.card.MaterialCardView>
+            <!-- Add this inside the LinearLayout of activity_doctor_dashboard.xml, below the CalendarView Card -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="12dp"
+                android:text="Scheduled Appointments"
+                android:textColor="#444444"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAppointments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_patient_card" />
+
+            <TextView
+                android:id="@+id/tvNoAppointments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp"
+                android:gravity="center"
+                android:text="No appointments for this day"
+                android:textColor="#9E9E9E"
+                android:visibility="visible" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

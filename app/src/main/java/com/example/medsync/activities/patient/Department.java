@@ -81,7 +81,9 @@ public class Department extends BaseActivity {
             return;
         }
 
-        // Query Firestore using 'whereIn' to match any of the specialization enum names
+        // File: D:/Android/Projects/MedSync/app/src/main/java/com/example/medsync/activities/patient/Department.java
+
+// ... inside fetchDoctorsByDepartment() ...
         db.collection("doctors")
                 .whereIn("specialization", validSpecializations)
                 .addSnapshotListener((value, error) -> {
@@ -93,22 +95,35 @@ public class Department extends BaseActivity {
                     if (value != null) {
                         doctorList.clear();
                         for (QueryDocumentSnapshot doc : value) {
-                            Doctor d = doc.toObject(Doctor.class);
-                            d.setId(doc.getId());
-
-                            // Local fix: if doctor stores raw enum name, map it to display name for UI
-                            // Assuming Doctor model has a method to get display name or handle it here
                             try {
-                                String rawSpec = doc.getString("specialization");
-                                d.specialization = SpecializationType.valueOf(rawSpec).getDisplayName();
-                            } catch (Exception ignored) {}
+                                // Try-catch block specifically for the deserialization crash
+                                Doctor d = doc.toObject(Doctor.class);
+                                if (d != null) {
+                                    d.setId(doc.getId());
 
-                            doctorList.add(d);
+                                    // Local fix: Map specialization Enum name to Display Name
+                                    try {
+                                        String rawSpec = doc.getString("specialization");
+                                        if (rawSpec != null) {
+                                            d.specialization = SpecializationType.valueOf(rawSpec).getDisplayName();
+                                        }
+                                    } catch (Exception ignored) {}
+
+                                    // Only show doctors who belong to a hospital
+                                    if (com.example.medsync.utils.ViewUtils.isValidUid(d.hospital_id)) {
+                                        doctorList.add(d);
+                                    }
+                                }
+                            } catch (Exception e) {
+                                Log.e("Department", "Doctor " + doc.getId() + " has corrupted data. Resetting their booked_slots...");
+                                // Optional: automatically fix the corrupted document
+                                // doc.getReference().update("booked_slots", null);
+                            }
                         }
                         adapter.notifyDataSetChanged();
 
                         if (doctorList.isEmpty()) {
-                            Toast.makeText(this, "No doctors found", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "No doctors found in this department", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
