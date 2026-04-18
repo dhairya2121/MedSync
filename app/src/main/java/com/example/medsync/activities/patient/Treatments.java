@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.medsync.R;
 import com.example.medsync.adapters.TreatmentAdapter;
 import com.example.medsync.model.Treatment;
+import com.example.medsync.model.enums.TreatmentStatus;
 import com.example.medsync.utils.BaseActivity;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -129,7 +130,15 @@ public class Treatments extends BaseActivity implements TreatmentAdapter.OnTreat
 
         if (selectedFilter.equals("all")) {
             filteredList.addAll(fullList);
-        } else {
+        }
+        else if(selectedFilter.equals("completed")){
+            for (Treatment t : fullList) {
+                if (t.status != null && (t.status.equalsIgnoreCase(TreatmentStatus.SUCCESS.name()) || t.status.equalsIgnoreCase(TreatmentStatus.FAILED.name()) )) {
+                    filteredList.add(t);
+                }
+            }
+        }
+        else {
             for (Treatment t : fullList) {
                 // Ensure treatment model has status field. Matches TreatmentStatus enum names
                 if (t.status != null && t.status.equalsIgnoreCase(selectedFilter)) {

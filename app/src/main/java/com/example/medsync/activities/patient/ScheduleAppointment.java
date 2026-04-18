@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.medsync.R;
+import com.example.medsync.model.Bill;
 import com.example.medsync.model.Doctor;
 import com.example.medsync.model.TimeSlot;
 import com.example.medsync.model.Treatment;
@@ -195,10 +196,10 @@ public class ScheduleAppointment extends BaseActivity {
 
         // Calculate the exact Timestamp for the appointment
         Calendar appointmentCal = Calendar.getInstance();
-        appointmentCal.setTimeInMillis(selectedDateMillis); // The selected Day
+        appointmentCal.setTimeInMillis(selectedDateMillis);
 
         Calendar slotTime = Calendar.getInstance();
-        slotTime.setTime(selectedSlot.start.toDate()); // The selected Time
+        slotTime.setTime(selectedSlot.start.toDate());
 
         appointmentCal.set(Calendar.HOUR_OF_DAY, slotTime.get(Calendar.HOUR_OF_DAY));
         appointmentCal.set(Calendar.MINUTE, slotTime.get(Calendar.MINUTE));
@@ -223,18 +224,43 @@ public class ScheduleAppointment extends BaseActivity {
         db.collection("hospitals").document(hospitalId)
                 .collection("treatments").add(t)
                 .addOnSuccessListener(docRef -> {
-                    // 2. Update doctor's booked_slots using arrayUnion (avoids overwriting existing data)
+                    String treatmentId = docRef.getId();
+
+                    // 2. Update doctor's booked_slots using arrayUnion
                     db.collection("doctors").document(doctorId)
                             .update("booked_slots", FieldValue.arrayUnion(finalTimestamp))
                             .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(this, "Appointment Confirmed!", Toast.LENGTH_SHORT).show();
-                                finish();
+
+                                // 3. Create a Bill with the SAME ID as the Treatment
+                                Bill b = new Bill();
+                                b.treatment_id = treatmentId;
+                                b.patient_id = t.patient_id;
+                                b.hospital_id = hospitalId;
+                                b.generated_at = Timestamp.now();
+                                b.status = "PENDING";
+
+                                // Add Appointment Fee from Doctor profile
+                                if (currentDoctor != null) {
+                                    b.items.put("Appointment Fee (" + doctorName + ")", (double) currentDoctor.appointmentFee);
+                                }
+                                b.calculateTotal();
+
+                                // Save Bill to db/hospitals/hospitalId/bills/treatmentId
+                                db.collection("hospitals").document(hospitalId)
+                                        .collection("bills").document(treatmentId)
+                                        .set(b)
+                                        .addOnSuccessListener(billVoid -> {
+                                            Toast.makeText(this, "Appointment Confirmed!", Toast.LENGTH_SHORT).show();
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e("Schedule", "Bill creation failed", e);
+                                            finish(); // Still finish as appointment was saved
+                                        });
                             });
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Booking failed", Toast.LENGTH_SHORT).show());
-        //Remember to create a bill on Appointment Success from Doctor Side
     }
-
     private void showEmptyState(String msg) {
         TextView tv = new TextView(this);
         tv.setText(msg);

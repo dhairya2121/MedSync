@@ -1,5 +1,6 @@
 package com.example.medsync.activities.patient;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -9,7 +10,9 @@ import android.widget.Toast;
 import com.example.medsync.R;
 import com.example.medsync.model.Report;
 import com.example.medsync.model.Treatment;
+import com.example.medsync.model.enums.TreatmentStatus;
 import com.example.medsync.utils.BaseActivity;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -49,6 +52,7 @@ public class TreatmentDetails extends BaseActivity {
                     if (e != null || doc == null || !doc.exists()) return;
 
                     Treatment t = doc.toObject(Treatment.class);
+                    t.setId(treatmentId);
                     if (t != null) {
                         updateUI(t);
                     }
@@ -76,29 +80,43 @@ public class TreatmentDetails extends BaseActivity {
             ((TextView) findViewById(R.id.tvObservations)).setText(nullableText(r.observations));
         }
 
-        // 3. Bill Handling
-        // Note: Assuming billing data is either inside treatment or fetched separately.
-        // For this UI, we look for 'cost' or similar fields if they exist in your DB.
+
         fetchAndPopulateBill(t);
     }
 
     private void fetchAndPopulateBill(Treatment t) {
         View billContainer = findViewById(R.id.bill_card_container);
+        MaterialButton btnPayBill=findViewById(R.id.btnPayBill);
+        btnPayBill.setOnClickListener(v->{
+            Intent intent =new Intent(this, Billing.class);
+            intent.putExtra("treatment_id", t.getId());
+            intent.putExtra("hospital_id", hospitalId);
+            startActivity(intent);
+        });
         // Checking if bill exists (Checking a hypothetical field or subcollection)
         // Reusing your item_bill_card.xml IDs
         db.collection("hospitals").document(hospitalId)
-                .collection("treatments").document(treatmentId)
-                .collection("bill").limit(1).get().addOnSuccessListener(query -> {
-                    if (!query.isEmpty()) {
+                .collection("bills").document(treatmentId)
+                .addSnapshotListener((doc,e)-> {
+                    if(e!=null || doc==null){
+                        return;
+                    }
+                    if (doc!=null && doc.exists()) {
                         findViewById(R.id.labelBill).setVisibility(View.VISIBLE);
                         billContainer.setVisibility(View.VISIBLE);
 
                         // Example: Set total from the first document in bill subcollection
-                        Double total = query.getDocuments().get(0).getDouble("totalAmount");
-                        String status = query.getDocuments().get(0).getString("status");
+                        Double total = doc.getDouble("total_amount");
+                        String status = doc.getString("status");
 
                         ((TextView) billContainer.findViewById(R.id.tvTotalAmount)).setText("Rs. " + (total != null ? total : "0.0"));
                         ((TextView) billContainer.findViewById(R.id.tvBillStatus)).setText(status != null ? status : "UNPAID");
+                        if(t.status.equalsIgnoreCase(TreatmentStatus.SUCCESS.name()) && status.equalsIgnoreCase("PENDING")){
+                            btnPayBill.setVisibility(View.VISIBLE);
+                        }
+                        else{
+                            btnPayBill.setVisibility(View.GONE);
+                        }
                     }
                 });
     }

@@ -15,7 +15,7 @@ public class Bill {
 
     public Map<String, Double> items = new HashMap<>();
     public double total_amount;
-    public String status; // e.g., "PENDING", "PAID"
+    public String status; // e.g., "PENDING","UNDER_VERIFICATION", "PAID"
     public Timestamp generated_at;
 
     public Bill() {}
