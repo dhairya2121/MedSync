@@ -1,11 +1,13 @@
 package com.example.medsync.activities.receptionist;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;import androidx.appcompat.app.AlertDialog;
 import com.example.medsync.R;
 import com.example.medsync.model.Doctor;
 import com.example.medsync.utils.BaseActivity;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class DoctorDetails extends BaseActivity {
@@ -32,7 +34,17 @@ public class DoctorDetails extends BaseActivity {
             loadDoctorData();
         }
 
-        findViewById(R.id.btn_remove_doctor).setOnClickListener(v -> confirmRemoval());
+        MaterialButton deleteBtn = findViewById(R.id.btn_remove_doctor);
+
+        if (deleteBtn != null) {
+            // Standard Android visibility constant
+            deleteBtn.setVisibility(View.VISIBLE);
+            deleteBtn.setOnClickListener(v -> confirmRemoval());
+        }
+        MaterialButton btn_schedule_appointment=findViewById(R.id.btn_schedule_appointment);
+        if(btn_schedule_appointment!=null){
+            btn_schedule_appointment.setVisibility(View.GONE);
+        }
     }
 
     private void loadDoctorData() {

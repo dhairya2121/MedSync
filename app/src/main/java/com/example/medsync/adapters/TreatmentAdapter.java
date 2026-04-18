@@ -79,14 +79,13 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
 
         // 4. Status Coloring
         if ("SUCCESS".equalsIgnoreCase(t.status)) {
-            holder.tvStatus.setTextColor(0xFF2E7D32);
+            holder.tvStatus.setTextColor(R.color.hard_green);
         } else if ("ONGOING".equalsIgnoreCase(t.status)) {
-            holder.tvStatus.setTextColor(0xFFEF6C00);
+            holder.tvStatus.setTextColor(R.color.hard_green);
         } else {
             holder.tvStatus.setTextColor(0xFF757575);
         }
 
-        // 5. Delete Action - FIXED: changed 'item' to 't'
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onDeleteClick(t);

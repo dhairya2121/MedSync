@@ -12,29 +12,13 @@
     <include
         android:id="@+id/navbar"
         layout="@layout/layout_navbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 2. Footer at the very bottom -->
-    <include
-        android:id="@+id/footer"
-        layout="@layout/layout_footer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- 3. Remove Button pinned strictly above the Footer -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_remove_doctor"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_margin="16dp"
-        android:backgroundTint="#FFEBEE"
-        android:text="Remove Doctor"
-        android:textColor="#D32F2F"
-        app:cornerRadius="12dp"
-        app:layout_constraintBottom_toTopOf="@id/footer" />
 
-    <!-- 4. ScrollView filling the space between Navbar and Remove Button -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -91,4 +75,39 @@
         </LinearLayout>
     </ScrollView>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_remove_doctor"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        app:strokeColor="@color/hard_red"
+        app:strokeWidth="1dp"
+        android:backgroundTint="@color/soft_red"
+        android:visibility="gone"
+        android:text="Remove Doctor"
+        android:clickable="true"
+        android:textColor="@color/hard_red"
+        app:cornerRadius="12dp"
+        app:layout_constraintBottom_toTopOf="@id/footer" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_schedule_appointment"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        android:visibility="visible"
+        android:backgroundTint="@color/soft_green"
+        android:text="Schedule Appointment"
+        android:clickable="true"
+        app:strokeColor="@color/hard_green"
+        app:strokeWidth="1dp"
+        android:textColor="@color/hard_green"
+        app:cornerRadius="30dp"
+        app:layout_constraintBottom_toTopOf="@id/footer" />
+
+    <include
+        android:id="@+id/footer"
+        layout="@layout/layout_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

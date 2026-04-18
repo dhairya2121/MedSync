@@ -143,7 +143,6 @@ public class Department extends BaseActivity {
                  Intent intent = new Intent(Department.this, DoctorDetails.class);
                  intent.putExtra("doctor_id", d.id);
                  startActivity(intent);
-                Toast.makeText(Department.this, "Viewing Dr. " + d.name, Toast.LENGTH_SHORT).show();
             });
         }
 

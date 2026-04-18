@@ -13,7 +13,6 @@ import android.widget.Toast;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.medsync.R;
-import com.example.medsync.model.Treatment;
 import com.example.medsync.utils.BaseActivity;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -39,13 +38,13 @@ public class Dashboard extends BaseActivity {
         mAuth=FirebaseAuth.getInstance();
         user=mAuth.getCurrentUser();
         db=FirebaseFirestore.getInstance();
-        Toast.makeText(this,"Welcome, "+user.getDisplayName(),Toast.LENGTH_SHORT).show();
         updateNavbarUI(user);
         //handle the RECENT HOSPITAL cart at Top (HERO)
-        MaterialCardView RecentHospitalCardContainner= findViewById(R.id.recent_hospital_card);
-        fetchRecentHospitalTreatmentAndUpdateUi(user,RecentHospitalCardContainner);
+        MaterialCardView RecentHospitalCardContainer = findViewById(R.id.recent_hospital_card);
+        fetchRecentHospitalTreatmentAndUpdateUi(user, RecentHospitalCardContainer);
         setupDepartmentsUi();
     }
+
     public void setupDepartmentsUi() {
         Map<String, Integer> iconMap = new HashMap<>();
 
@@ -95,7 +94,6 @@ public class Dashboard extends BaseActivity {
         if (currUser == null || !isValidUid(currUser.getUid())) {
         return;
     }
-
         String currPatientId = currUser.getUid();
 
         TextView tvRecentHospitalName = RecentHospitalCardContainner.findViewById(R.id.tvRecentHospitalName);

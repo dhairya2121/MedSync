@@ -1,5 +1,8 @@
 package com.example.medsync.activities.patient;
 
+import static com.example.medsync.utils.ViewUtils.isValidUid;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -23,24 +26,33 @@ public class DoctorDetails extends BaseActivity {
 
         db = FirebaseFirestore.getInstance();
         doctorId = getIntent().getStringExtra("doctor_id");
-
+        applyEdgeToEdgePadding(findViewById(R.id.main));
         setupBaseActivityNavbar("P", "Patient");
         setupBaseActivityFooter("home", "P");
 
         tvInitial = findViewById(R.id.tvProfileInitial);
         tvFullName = findViewById(R.id.tvDoctorNameLarge);
 
-        if (doctorId != null) {
+        if (isValidUid(doctorId)) {
             loadDoctorData();
         }
 
         // Correct way to find and hide the button
         MaterialButton deleteBtn = findViewById(R.id.btn_remove_doctor);
-
         if (deleteBtn != null) {
             // Standard Android visibility constant
             deleteBtn.setVisibility(View.GONE);
         }
+        MaterialButton btn_schedule_appointment=findViewById(R.id.btn_schedule_appointment);
+        if(btn_schedule_appointment!=null && isValidUid(doctorId)){
+            btn_schedule_appointment.setVisibility(View.VISIBLE);
+            btn_schedule_appointment.setOnClickListener(v -> {
+                Intent intent = new Intent(DoctorDetails.this, ScheduleAppointment.class);
+                intent.putExtra("doctor_id", doctorId);
+                startActivity(intent);
+            });
+        }
+
     }
 
     private void loadDoctorData() {
