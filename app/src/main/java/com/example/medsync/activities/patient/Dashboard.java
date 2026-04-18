@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -13,6 +14,8 @@ import android.widget.Toast;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.medsync.R;
+import com.example.medsync.model.Report;
+import com.example.medsync.model.Treatment;
 import com.example.medsync.utils.BaseActivity;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -20,13 +23,17 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class Dashboard extends BaseActivity {
     FirebaseAuth mAuth;
     FirebaseUser user;
     FirebaseFirestore db;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault());
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,11 +103,12 @@ public class Dashboard extends BaseActivity {
     }
         String currPatientId = currUser.getUid();
 
+        TextView tvRecentHospitalAddress=RecentHospitalCardContainner.findViewById(R.id.tvRecentHospitalAddress);
         TextView tvRecentHospitalName = RecentHospitalCardContainner.findViewById(R.id.tvRecentHospitalName);
         TextView tvRecentDoctorName = RecentHospitalCardContainner.findViewById(R.id.tvRecentDoctorName);
         TextView tvNoRecents = RecentHospitalCardContainner.findViewById(R.id.tvNoRecents);
         ConstraintLayout btnRecentHospitalCard = RecentHospitalCardContainner.findViewById(R.id.btnRecentHospitalCard);
-
+        MaterialCardView RecentTreatmentCard=findViewById(R.id.RecentTreatmentCard);
         db.collectionGroup("treatments")
                 .whereEqualTo("patient_id", currPatientId)
                 .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
@@ -115,8 +123,9 @@ public class Dashboard extends BaseActivity {
 
                     if (t != null && !t.isEmpty()) {
                         runOnUiThread(() -> {
-                            tvNoRecents.setVisibility(android.view.View.GONE);
-                            btnRecentHospitalCard.setVisibility(android.view.View.VISIBLE);
+                            tvNoRecents.setVisibility(View.GONE);
+
+                            btnRecentHospitalCard.setVisibility(View.VISIBLE);
                         });
 
                         DocumentSnapshot doc = t.getDocuments().get(0);
@@ -126,22 +135,27 @@ public class Dashboard extends BaseActivity {
                             db.collection("hospitals").document(recentHospitalId).get()
                                     .addOnSuccessListener(d -> {
                                         if (d.exists()) {
+                                            RecentTreatmentCard.setVisibility(View.VISIBLE);
+                                            tvRecentHospitalAddress.setText(d.getString("address"));
+                                            updateRecentTreatmentUI(RecentTreatmentCard, doc.toObject(Treatment.class));
+                                            tvRecentDoctorName.setText("Dr. " + doc.getString("examiner_name"));
                                             tvRecentHospitalName.setText(d.getString("legal_name"));
+                                            btnRecentHospitalCard.setOnClickListener(v -> {
+                                                Intent intent = new Intent(Dashboard.this, Treatments.class);
+                                                intent.putExtra("hospital_id", recentHospitalId);
+                                                startActivity(intent);
+                                            });
                                         }
                                     });
                         }
-                        tvRecentDoctorName.setText(doc.getString("examiner_name"));
 
-                        btnRecentHospitalCard.setOnClickListener(v -> {
-                            Intent intent = new Intent(Dashboard.this, Treatments.class);
-                            intent.putExtra("hospital_id", recentHospitalId);
-                            startActivity(intent);
-                        });
+
                     } else {
                         // Logic reaches here if no treatments exist for this user
                         Log.d("Dashboard", "Empty treatments list");
                         runOnUiThread(() -> {
                             tvNoRecents.setVisibility(android.view.View.VISIBLE);
+                            RecentTreatmentCard.setVisibility(View.GONE);
                             btnRecentHospitalCard.setVisibility(android.view.View.GONE);
                             Toast.makeText(this, "No past treatments found", Toast.LENGTH_SHORT).show();
                         });
@@ -149,6 +163,17 @@ public class Dashboard extends BaseActivity {
                 });
     }
 
+    private void updateRecentTreatmentUI(MaterialCardView RecentTreatmentCard,Treatment t) {
+        // 1. General Info
+        if(RecentTreatmentCard==null)return;
+        ((TextView) findViewById(R.id.tvType)).setText(t.type);
+        ((TextView) findViewById(R.id.tvDoctorName)).setText("Examined by " + t.getDoctorName());
+        ((TextView) findViewById(R.id.tvStatus)).setText(t.status);
+
+        if (t.getTimestamp() != null) {
+            ((TextView) findViewById(R.id.tvDateTime)).setText(dateFormat.format(t.getTimestamp().toDate()));
+        }
+    }
     private void updateNavbarUI(FirebaseUser currUser) {
         TextView tvUserName = findViewById(R.id.tvUserName);
         TextView tvUserSubtext = findViewById(R.id.tvUserSubtext);

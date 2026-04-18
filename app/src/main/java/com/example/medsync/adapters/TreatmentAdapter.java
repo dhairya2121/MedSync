@@ -1,5 +1,6 @@
 package com.example.medsync.adapters;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -22,14 +23,18 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy | HH:mm", Locale.getDefault());
     private OnTreatmentListener listener;
 
+    private String role;
+
     public interface OnTreatmentListener {
         void onDeleteClick(Treatment treatment);
+        void onDetailsClick(Treatment treatment);
     }
 
     // Single constructor to handle the listener
-    public TreatmentAdapter(List<Treatment> treatmentList, OnTreatmentListener listener) {
+    public TreatmentAdapter(List<Treatment> treatmentList, OnTreatmentListener listener,String role) {
         this.treatmentList = treatmentList;
         this.listener = listener;
+        this.role=role;
     }
 
     public void setList(List<Treatment> list) {
@@ -45,6 +50,7 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
         return new TreatmentViewHolder(view);
     }
 
+    @SuppressLint("ResourceAsColor")
     @Override
     public void onBindViewHolder(@NonNull TreatmentViewHolder holder, int position) {
         Treatment t = treatmentList.get(position);
@@ -59,12 +65,25 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
         holder.tvType.setText(displayTitle);
 
         // 2. Date Formatting
-        if (t.start != null) {
+        // Create the requested format: "dd-MMM-yyyy, hh:mm a"
+        SimpleDateFormat displayFormat = new SimpleDateFormat("dd-MMM-yyyy, hh:mm a", Locale.getDefault());
+
+        if (t.getTimestamp() != null) {
+            // BEST WAY: Use the Firestore Timestamp directly
+            holder.tvDate.setText(displayFormat.format(t.getTimestamp().toDate()));
+        } else if (t.start != null) {
+            // FALLBACK: Try to parse the 'start' string if timestamp is missing
             try {
+                // Assuming t.start might be in ISO format "yyyy-MM-dd'T'HH:mm:ss"
                 SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
                 Date date = parser.parse(t.start);
-                if (date != null) holder.tvDate.setText(dateFormat.format(date));
+                if (date != null) {
+                    holder.tvDate.setText(displayFormat.format(date));
+                } else {
+                    holder.tvDate.setText(t.start);
+                }
             } catch (Exception e) {
+                // If it's not an ISO string (e.g., just "09:00 AM"), show it as is
                 holder.tvDate.setText(t.start);
             }
         } else {
@@ -86,11 +105,23 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
             holder.tvStatus.setTextColor(0xFF757575);
         }
 
-        holder.btnDelete.setOnClickListener(v -> {
+        if(role=="R"){
+            holder.btnDelete.setVisibility(View.VISIBLE);
+            holder.btnDelete.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onDeleteClick(t);
+                }
+            });
+        }
+        else{
+            holder.btnDelete.setVisibility(View.GONE);
+        }
+        holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onDeleteClick(t);
+                listener.onDetailsClick(t);
             }
         });
+
     }
 
     @Override

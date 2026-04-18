@@ -2,7 +2,7 @@ package com.example.medsync.model;
 
 
 public class Room {
-    public String room_id;   // ✅ Add this — Firestore document ID
+    public String room_id;
     public String type;
     public boolean isOccupied = false;
     public String patient_id;

@@ -1,7 +1,8 @@
 package com.example.medsync.model;
 
-import com.google.firebase.firestore.Exclude;
 import java.util.List;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.Exclude;
 
 public class Doctor {
     @Exclude
@@ -13,6 +14,7 @@ public class Doctor {
     public long exp;
     public long appointmentFee;
     public List<TimeSlot> working_slots;
+    public List<Timestamp> booked_slots;
 
     public Doctor() {}
 

@@ -21,6 +21,80 @@
             app:titleTextColor="@color/black" />
     </com.google.android.material.appbar.AppBarLayout>
 
+    <LinearLayout
+        android:id="@+id/filter_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+        android:padding="16dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filter by"
+            android:layout_marginRight="16dp"
+            android:textColor="#888888"
+            android:textSize="18sp" />
+<!--        <TextView-->
+<!--            android:id="@+id/tvFilterEnabled"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:background="@drawable/bg_green_status_badge"-->
+<!--            android:paddingHorizontal="16dp"-->
+<!--            android:paddingVertical="6dp"-->
+<!--            android:visibility="gone"-->
+<!--            android:text="Admitted"-->
+<!--            android:textColor="@color/hard_green"-->
+<!--            android:textSize="14sp"-->
+<!--            android:clickable="true"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent" />-->
+        <TextView
+            android:id="@+id/tvOngoingFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_grey_status_badge"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="6dp"
+            android:text="ongoing"
+            android:clickable="true"
+            android:visibility="visible"
+            android:textColor="@color/hard_grey"
+            android:layout_marginRight="10dp"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/tvUpcomingFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_grey_status_badge"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="6dp"
+            android:text="upcoming"
+            android:layout_marginRight="10dp"
+            android:clickable="true"
+            android:visibility="visible"
+            android:textColor="@color/hard_grey"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvCompletedFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_grey_status_badge"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="6dp"
+            android:text="completed"
+            android:clickable="true"
+            android:visibility="visible"
+            android:textColor="@color/hard_grey"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </LinearLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvOperations"
         android:layout_width="match_parent"
@@ -28,7 +102,7 @@
         android:clipToPadding="false"
         android:paddingTop="8dp"
         app:layout_constraintBottom_toTopOf="@id/footer"
-        app:layout_constraintTop_toBottomOf="@id/appBarLayout" />
+        app:layout_constraintTop_toBottomOf="@id/filter_bar" />
 
 
     <include

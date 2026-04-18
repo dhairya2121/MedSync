@@ -44,7 +44,7 @@ public class ManageOperations extends BaseActivity implements TreatmentAdapter.O
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // Pass 'this' as the listener for the delete button
-        adapter = new TreatmentAdapter(new ArrayList<>(), this);
+        adapter = new TreatmentAdapter(new ArrayList<>(), this,"R");
         recyclerView.setAdapter(adapter);
 
 
@@ -85,5 +85,15 @@ public class ManageOperations extends BaseActivity implements TreatmentAdapter.O
                 .collection("treatments").document(treatment.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show());
+    }
+    @Override
+    public void onDetailsClick(Treatment treatment){
+//        db.collection("hospitals").document(hospitalId).collection("treatments")
+//                .document(treatment.getId())
+//                .addSnapshotListener((t,e)->{
+//                    if(e!=null) return;
+//                    if(t==null) return;
+//
+//                });
     }
 }

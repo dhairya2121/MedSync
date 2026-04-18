@@ -66,7 +66,7 @@ public class PatientDetails extends BaseActivity implements TreatmentAdapter.OnT
 
         treatmentList = new ArrayList<>();
         // 2. Pass 'this' as the second argument to the constructor
-        treatmentAdapter = new TreatmentAdapter(treatmentList, this);
+        treatmentAdapter = new TreatmentAdapter(treatmentList, this,"R");
         rvTreatments.setLayoutManager(new LinearLayoutManager(this));
         rvTreatments.setAdapter(treatmentAdapter);
     }
@@ -136,5 +136,15 @@ public class PatientDetails extends BaseActivity implements TreatmentAdapter.OnT
                 .addOnFailureListener(e -> {
                     Log.e("PatientDetails", "Error loading treatments: ", e);
                 });
+    }
+    @Override
+    public void onDetailsClick(Treatment treatment){
+//        db.collection("hospitals").document(hospitalId).collection("treatments")
+//                .document(treatment.getId())
+//                .addSnapshotListener((t,e)->{
+//                    if(e!=null) return;
+//                    if(t==null) return;
+//
+//                });
     }
 }

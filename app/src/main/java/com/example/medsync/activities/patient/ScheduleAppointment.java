@@ -6,7 +6,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
+import android.view.View;
 import android.widget.CalendarView;
 import android.widget.GridLayout;
 import android.widget.TextView;
@@ -22,22 +22,26 @@ import com.example.medsync.utils.BaseActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ScheduleAppointment extends BaseActivity {
 
     private FirebaseFirestore db;
-    private String doctorId, hospitalId, doctorName;
+    private String hospitalId, doctorName, doctorId;
+    private List<Timestamp> globalBookedSlots;
     private GridLayout gridTimeSlots;
     private long selectedDateMillis;
     private MaterialButton lastSelectedBtn = null;
     private Doctor currentDoctor;
+    private final SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,15 +56,25 @@ public class ScheduleAppointment extends BaseActivity {
         gridTimeSlots = findViewById(R.id.gridTimeSlots);
         CalendarView calendarView = findViewById(R.id.calendarView);
 
+        // --- FIX: RESTRICT PREVIOUS DATES ---
+        // Get the current time in milliseconds
+        long today = System.currentTimeMillis();
+        // Set the minimum date to today (Subtract 1000ms to avoid edge-case
+        // synchronization issues where the current millisecond is slightly past the check)
+        calendarView.setMinDate(today - 1000);
+        // ------------------------------------
+
         doctorId = getIntent().getStringExtra("doctor_id");
 
-        // Initialize with today's date at start of day
+        // Initialize with today's date at 00:00:00
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
         selectedDateMillis = cal.getTimeInMillis();
+
+        // Ensure the initial visual selection matches the logic
         calendarView.setDate(selectedDateMillis);
 
         calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
@@ -69,9 +83,9 @@ public class ScheduleAppointment extends BaseActivity {
             newCal.set(Calendar.MILLISECOND, 0);
             selectedDateMillis = newCal.getTimeInMillis();
 
-            // Refresh slots whenever date changes
+            // Refresh UI whenever date changes
             if (currentDoctor != null) {
-                fetchBookedSlotsAndRender(currentDoctor);
+                filterAndRenderSlots();
             }
         });
 
@@ -83,106 +97,89 @@ public class ScheduleAppointment extends BaseActivity {
     }
 
     private void fetchDoctorData() {
-        db.collection("doctors").document(doctorId).get().addOnSuccessListener(doc -> {
-            currentDoctor = doc.toObject(Doctor.class);
-            if (currentDoctor != null) {
-                this.hospitalId = currentDoctor.hospital_id;
-                this.doctorName = currentDoctor.name;
-                fetchBookedSlotsAndRender(currentDoctor);
-            }
-        });
-    }
-
-    private void fetchBookedSlotsAndRender(Doctor doctor) {
-        if (hospitalId == null) return;
-
-        // --- Loading State ---
-        gridTimeSlots.removeAllViews();
-        TextView tvLoading = new TextView(this);
-        tvLoading.setText("Checking availability...");
-        tvLoading.setPadding(20, 50, 20, 50);
-        gridTimeSlots.addView(tvLoading);
-        lastSelectedBtn = null;
-
-        // Define the start and end of the specific selected day
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(selectedDateMillis);
-        Date startOfDay = cal.getTime();
-
-        cal.add(Calendar.DAY_OF_MONTH, 1);
-        Date endOfDay = cal.getTime();
-
-        db.collection("hospitals").document(hospitalId)
-                .collection("treatments")
-                .whereEqualTo("examiner_id", doctorId)
-                .whereGreaterThanOrEqualTo("timestamp", new Timestamp(startOfDay))
-                .whereLessThan("timestamp", new Timestamp(endOfDay))
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<String> bookedStarts = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Treatment t = doc.toObject(Treatment.class);
-                        if (t.start != null) bookedStarts.add(t.start);
+        db.collection("doctors").document(doctorId).get()
+                .addOnSuccessListener(doc -> {
+                    currentDoctor = doc.toObject(Doctor.class);
+                    if (currentDoctor != null) {
+                        this.hospitalId = currentDoctor.hospital_id;
+                        this.doctorName = currentDoctor.name;
+                        this.globalBookedSlots = currentDoctor.booked_slots != null ? currentDoctor.booked_slots : new ArrayList<>();
+                        filterAndRenderSlots();
                     }
-                    renderSlots(doctor.working_slots, bookedStarts);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Schedule", "Error fetching bookings", e);
-                    renderSlots(doctor.working_slots, new ArrayList<>());
                 });
     }
 
-    private void renderSlots(List<TimeSlot> workingSlots, List<String> bookedStarts) {
-        gridTimeSlots.removeAllViews();
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
+    private void filterAndRenderSlots() {
+        if (currentDoctor == null) return;
 
+        gridTimeSlots.removeAllViews();
+        lastSelectedBtn = null;
+
+        // Determine the time window for the selected day
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(selectedDateMillis);
+        Date startOfDay = cal.getTime();
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        Date endOfDay = cal.getTime();
+
+        // Identify which slots (by start time string) are booked on THIS specific date
+        List<String> bookedTimesForThisDate = new ArrayList<>();
+        for (Timestamp ts : globalBookedSlots) {
+            Date bookedDate = ts.toDate();
+            if (bookedDate.compareTo(startOfDay) >= 0 && bookedDate.before(endOfDay)) {
+                bookedTimesForThisDate.add(timeFormat.format(bookedDate));
+            }
+        }
+
+        renderGrid(currentDoctor.working_slots, bookedTimesForThisDate);
+    }
+
+    private void renderGrid(List<TimeSlot> workingSlots, List<String> bookedTimesForThisDate) {
         if (workingSlots == null || workingSlots.isEmpty()) {
-            TextView tvEmpty = new TextView(this);
-            tvEmpty.setText("No working slots defined for this doctor.");
-            gridTimeSlots.addView(tvEmpty);
+            showEmptyState("No slots available for this doctor.");
             return;
         }
 
-        int hardGreyColor = getColor(R.color.hard_grey);
-        int hardGreenColor = getColor(R.color.hard_green);
-        int softGreenColor = getColor(R.color.soft_green);
-        int softGreyColor = getColor(R.color.soft_grey);
+        int hardGrey = getColor(R.color.hard_grey);
+        int hardGreen = getColor(R.color.hard_green);
+        int softGreen = getColor(R.color.soft_green);
+        int softGrey = getColor(R.color.soft_grey);
 
         for (TimeSlot slot : workingSlots) {
             MaterialButton btn = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
 
-            String timeDisplay = sdf.format(slot.start.toDate());
-            btn.setText(timeDisplay);
+            String startTimeStr = timeFormat.format(slot.start.toDate());
+            String endTimeStr = timeFormat.format(slot.end.toDate());
+
+            // UI Requirement: "9:00 AM - 9:30 AM"
+            btn.setText(String.format("%s - %s", startTimeStr, endTimeStr));
             btn.setAllCaps(false);
             btn.setTag(slot);
 
-            boolean isActuallyBooked = bookedStarts.contains(timeDisplay);
-            boolean isFree = Boolean.TRUE.equals(slot.free) && !isActuallyBooked;
+            boolean isOccupied = bookedTimesForThisDate.contains(startTimeStr);
 
-            if (isFree) {
-                btn.setStrokeColor(ColorStateList.valueOf(hardGreyColor));
-                btn.setTextColor(hardGreyColor);
+            if (!isOccupied) {
+                btn.setStrokeColor(ColorStateList.valueOf(hardGrey));
+                btn.setTextColor(hardGrey);
                 btn.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
 
                 btn.setOnClickListener(v -> {
                     if (lastSelectedBtn != null) {
-                        lastSelectedBtn.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-                        lastSelectedBtn.setTextColor(hardGreyColor);
-                        lastSelectedBtn.setStrokeColor(ColorStateList.valueOf(hardGreyColor));
+                        lastSelectedBtn.setBackgroundTintList(ColorStateList.valueOf(softGrey));
+                        lastSelectedBtn.setTextColor(hardGrey);
+                        lastSelectedBtn.setStrokeColor(ColorStateList.valueOf(hardGrey));
                     }
-                    btn.setBackgroundTintList(ColorStateList.valueOf(softGreenColor));
-                    btn.setTextColor(hardGreenColor);
-                    btn.setStrokeColor(ColorStateList.valueOf(hardGreenColor));
+                    btn.setBackgroundTintList(ColorStateList.valueOf(softGreen));
+                    btn.setTextColor(hardGreen);
+                    btn.setStrokeColor(ColorStateList.valueOf(hardGreen));
                     lastSelectedBtn = btn;
                 });
             } else {
                 btn.setEnabled(false);
-                btn.setAlpha(0.6f);
-                btn.setStrokeColor(ColorStateList.valueOf(softGreyColor));
-                btn.setTextColor(hardGreyColor);
-                if (isActuallyBooked) {
-                    btn.setText(timeDisplay + "\n(Booked)");
-                }
+                btn.setAlpha(0.6f); // Clearer "disabled" look
+                btn.setStrokeColor(ColorStateList.valueOf(softGrey));
+                btn.setTextColor(hardGrey);
+                btn.setText(btn.getText() + "\n(Booked)");
             }
             gridTimeSlots.addView(btn);
         }
@@ -190,12 +187,25 @@ public class ScheduleAppointment extends BaseActivity {
 
     private void saveAppointment() {
         if (lastSelectedBtn == null) {
-            Toast.makeText(this, "Please select an available time slot", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please select a time slot", Toast.LENGTH_SHORT).show();
             return;
         }
 
         TimeSlot selectedSlot = (TimeSlot) lastSelectedBtn.getTag();
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
+
+        // Calculate the exact Timestamp for the appointment
+        Calendar appointmentCal = Calendar.getInstance();
+        appointmentCal.setTimeInMillis(selectedDateMillis); // The selected Day
+
+        Calendar slotTime = Calendar.getInstance();
+        slotTime.setTime(selectedSlot.start.toDate()); // The selected Time
+
+        appointmentCal.set(Calendar.HOUR_OF_DAY, slotTime.get(Calendar.HOUR_OF_DAY));
+        appointmentCal.set(Calendar.MINUTE, slotTime.get(Calendar.MINUTE));
+        appointmentCal.set(Calendar.SECOND, 0);
+        appointmentCal.set(Calendar.MILLISECOND, 0);
+
+        Timestamp finalTimestamp = new Timestamp(appointmentCal.getTime());
 
         Treatment t = new Treatment();
         t.type = TreatmentType.APPOINTMENT.name();
@@ -205,28 +215,30 @@ public class ScheduleAppointment extends BaseActivity {
         t.patient_name = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         t.examiner_id = doctorId;
         t.examiner_name = doctorName;
+        t.setTimestamp(finalTimestamp);
+        t.start = timeFormat.format(selectedSlot.start.toDate());
+        t.end = timeFormat.format(selectedSlot.end.toDate());
 
-        Calendar finalCal = Calendar.getInstance();
-        finalCal.setTimeInMillis(selectedDateMillis);
-
-        Calendar timeCal = Calendar.getInstance();
-        timeCal.setTime(selectedSlot.start.toDate());
-
-        finalCal.set(Calendar.HOUR_OF_DAY, timeCal.get(Calendar.HOUR_OF_DAY));
-        finalCal.set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE));
-        finalCal.set(Calendar.SECOND, 0);
-        finalCal.set(Calendar.MILLISECOND, 0);
-
-        t.setTimestamp(new Timestamp(finalCal.getTime()));
-        t.start = sdf.format(selectedSlot.start.toDate());
-        t.end = sdf.format(selectedSlot.end.toDate());
-
+        // 1. Add Treatment to hospital sub-collection
         db.collection("hospitals").document(hospitalId)
                 .collection("treatments").add(t)
                 .addOnSuccessListener(docRef -> {
-                    Toast.makeText(this, "Appointment Confirmed!", Toast.LENGTH_SHORT).show();
-                    finish();
+                    // 2. Update doctor's booked_slots using arrayUnion (avoids overwriting existing data)
+                    db.collection("doctors").document(doctorId)
+                            .update("booked_slots", FieldValue.arrayUnion(finalTimestamp))
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "Appointment Confirmed!", Toast.LENGTH_SHORT).show();
+                                finish();
+                            });
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Booking failed", Toast.LENGTH_SHORT).show());
+        //Remember to create a bill on Appointment Success from Doctor Side
+    }
+
+    private void showEmptyState(String msg) {
+        TextView tv = new TextView(this);
+        tv.setText(msg);
+        tv.setPadding(20, 50, 20, 50);
+        gridTimeSlots.addView(tv);
     }
 }
