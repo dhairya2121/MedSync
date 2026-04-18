@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?><androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -9,35 +7,53 @@
     android:background="#F8FDFF"
     tools:context=".activities.doctor.Dashboard">
 
-    <!-- 1. Navbar: Stuck to top -->
+    <!-- 1. Navbar -->
     <include
         android:id="@+id/navbar"
         layout="@layout/layout_navbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 2. Footer: Stuck to bottom -->
-    <include
-        android:id="@+id/footer"
-        layout="@layout/layout_footer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <!-- 2. Empty State Watermark -->
+    <ImageView
+        android:id="@+id/iv_dashboard_watermark"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:alpha="0.09"
+        android:src="@drawable/ic_dashboard"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/black" />
 
-    <!-- 3. Scrollable Content: Fills the remaining gap -->
+    <!-- 3. Join Hospital Button (Visible only if no hospital linked) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_add_hospital"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_margin="16dp"
+        android:backgroundTint="@color/light_green"
+        android:text="+ Join a Hospital"
+        android:textAllCaps="false"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:cornerRadius="30dp"
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:strokeColor="#EEEEEE"
+        app:strokeWidth="1dp" />
+
+    <!-- 4. Dashboard Content (Visible only if hospital linked) -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/dashboard_section"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fillViewport="true"
+        android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@id/footer"
-        app:layout_constraintTop_toBottomOf="@id/navbar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/navbar">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -45,62 +61,114 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- Hospital Hero Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/hospital_hero_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#E0E0E0"
+                app:strokeWidth="1dp">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="24dp">
+
+                    <TextView
+                        android:id="@+id/tvHospitalName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Hospital Name"
+                        android:textColor="#000000"
+                        android:textSize="24sp"
+                        app:layout_constraintEnd_toStartOf="@+id/iv_arrow"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvHospitalAddress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Address..."
+                        android:textColor="#666666"
+                        android:textSize="14sp"
+                        app:layout_constraintEnd_toStartOf="@+id/iv_arrow"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tvHospitalName" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/bg_green_status_badge"
+                        android:backgroundTint="@color/soft_green"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tvHospitalAddress">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_filled_user"
+                            app:tint="@color/hard_green" />
+
+                        <TextView
+                            android:id="@+id/tvAdmittedCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="0 Admitted"
+                            android:textColor="@color/hard_green"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/iv_arrow"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_double_right_stroke"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="Admitted Patients"
-                android:textColor="#444444"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <!-- The List: Manually including 3 -->
-            <include layout="@layout/item_admitted_patient" />
-            <include layout="@layout/item_admitted_patient" />
-            <include layout="@layout/item_admitted_patient" />
-
-            <!-- View All Bar -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/tvViewAll"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:text="View all patients"
-                android:textColor="#2196F3"
-                android:textSize="14sp"
-                android:textAllCaps="false"
-                app:icon="@drawable/ic_double_right_stroke"
-                app:iconGravity="textEnd"
-                app:iconSize="18dp"
-                app:iconPadding="8dp"
-                app:iconTint="#2196F3" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
                 android:layout_marginBottom="12dp"
                 android:text="Schedule Calendar"
-                android:textColor="#444444"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textSize="18sp" />
 
-            <!-- Calendar Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="2dp">
-
                 <CalendarView
                     android:id="@+id/calendarView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
             </com.google.android.material.card.MaterialCardView>
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <include
+        android:id="@+id/footer"
+        layout="@layout/layout_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

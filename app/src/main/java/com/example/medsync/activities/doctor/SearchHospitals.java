@@ -1,4 +1,4 @@
-package com.example.medsync.activities.patient;
+package com.example.medsync.activities.doctor;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -51,7 +51,7 @@ public class SearchHospitals extends BaseActivity {
         applyEdgeToEdgePadding(findViewById(R.id.main));
 
         // Initialize Footer
-        setupBaseActivityFooter("rolebased", "P");
+        setupBaseActivityFooter("profile", "D");
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
@@ -86,10 +86,10 @@ public class SearchHospitals extends BaseActivity {
         TextView tvUserInitial = findViewById(R.id.tvUserInitial);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
+        if (user != null && tvUserName!=null && tvUserSubtext!=null && tvUserInitial!=null) {
             String name = user.getDisplayName() != null ? user.getDisplayName() : "Patient User";
             tvUserName.setText(name);
-            tvUserSubtext.setText("Patient Account");
+            tvUserSubtext.setText("Doctor");
             tvUserInitial.setText(name.substring(0, 1).toUpperCase());
         }
     }
@@ -120,7 +120,8 @@ public class SearchHospitals extends BaseActivity {
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {Map<String, Object> data = hospitals.get(position);
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            Map<String, Object> data = hospitals.get(position);
 
             holder.tvName.setText((String) data.getOrDefault("legal_name", "Unknown Hospital"));
             holder.tvLocation.setText((String) data.getOrDefault("address", "No address provided"));
@@ -138,19 +139,22 @@ public class SearchHospitals extends BaseActivity {
             holder.rbHospital.setRating((float) rating);
             holder.tvRatingText.setText(String.format(Locale.getDefault(), "%.1f (%d)", rating, count));
 
+            // Keep your existing OnClickListeners...
+
+            // Inside SearchHospitals.java -> HospitalAdapter -> onBindViewHolder
             holder.itemView.setOnClickListener(v -> {
                 String hospitalId = (String) data.get("hospital_id");
                 if (hospitalId != null) {
-                    Intent intent = new Intent(SearchHospitals.this, HospitalDetails.class);
-                    // Pass the hospitalId variable here
-                    intent.putExtra("hospital_id", hospitalId);
-                    overridePendingTransition(0, 0);
-
-                    startActivity(intent);
+                    // Link this hospital to the doctor
+                    db.collection("doctors").document(mAuth.getUid())
+                            .update("hospital_id", hospitalId)
+                            .addOnSuccessListener(aVoid -> {
+                                // The SnapshotListener in Dashboard will automatically refresh the UI
+                                finish();
+                            });
                 }
             });
         }
-
         @Override
         public int getItemCount() { return hospitals.size(); }
 

@@ -1,5 +1,8 @@
 package com.example.medsync.activities.doctor;
 
+import android.util.Log;
+import android.widget.Toast;
+
 import com.example.medsync.utils.BaseProfileActivity;
 import com.google.firebase.firestore.DocumentSnapshot;
 

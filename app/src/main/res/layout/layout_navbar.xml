@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="C"
+            android:text="-"
             android:textColor="#1976D2"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -59,7 +59,7 @@
             android:id="@+id/tvUserName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Dr. Catherine"
+            android:text="--"
             android:textColor="#4E342E"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -68,7 +68,7 @@
             android:id="@+id/tvUserSubtext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Family Physician"
+            android:text="MedSync"
             android:textColor="#9E9E9E"
             android:textSize="14sp" />
     </LinearLayout>

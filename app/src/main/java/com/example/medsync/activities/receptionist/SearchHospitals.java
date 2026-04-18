@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +24,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class SearchHospitals extends BaseActivity {
@@ -127,11 +129,25 @@ public class SearchHospitals extends BaseActivity {
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            Map<String, Object> data = hospitals.get(position);
+        public void onBindViewHolder(ViewHolder holder, int position) {Map<String, Object> data = hospitals.get(position);
 
             holder.tvName.setText((String) data.getOrDefault("legal_name", "Unknown Hospital"));
             holder.tvLocation.setText((String) data.getOrDefault("address", "No address provided"));
+
+            // Binding Rating Data
+            Object ratingObj = data.get("rating");
+            Object countObj = data.get("reviewCount");
+
+            double rating = 0.0;
+            if (ratingObj instanceof Double) rating = (Double) ratingObj;
+            else if (ratingObj instanceof Long) rating = ((Long) ratingObj).doubleValue();
+
+            long count = (countObj instanceof Long) ? (Long) countObj : 0;
+
+            holder.rbHospital.setRating((float) rating);
+            holder.tvRatingText.setText(String.format(Locale.getDefault(), "%.1f (%d)", rating, count));
+
+            // Keep your existing OnClickListeners...
 
             // ✅ Handle existing item click
             holder.itemView.setOnClickListener(v -> {
@@ -146,11 +162,15 @@ public class SearchHospitals extends BaseActivity {
         public int getItemCount() { return hospitals.size(); }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView tvName, tvLocation;
+            TextView tvName, tvLocation, tvRatingText;
+            RatingBar rbHospital;
+
             public ViewHolder(View itemView) {
                 super(itemView);
                 tvName = itemView.findViewById(R.id.tv_hospital_name);
                 tvLocation = itemView.findViewById(R.id.tv_location);
+                tvRatingText = itemView.findViewById(R.id.tv_rating_text);
+                rbHospital = itemView.findViewById(R.id.rb_hospital);
             }
         }
     }

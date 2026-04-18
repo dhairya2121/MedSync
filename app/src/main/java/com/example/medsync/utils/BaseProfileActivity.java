@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.example.medsync.R;
 import com.example.medsync.activities.LoginActivity;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
@@ -83,45 +84,94 @@ public abstract class BaseProfileActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         // Note: Make sure activity_receptionist_profile.xml uses generic IDs
         // if this is truly a "Base" layout, or handle IDs in child classes.
-        setContentView(R.layout.activity_receptionist_profile);
+        setContentView(R.layout.activity_base_profile);
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         user = mAuth.getCurrentUser();
-
+        String role=getUserRole();
         applyEdgeToEdgePadding(findViewById(R.id.main));
-        setupBaseActivityFooter("profile", getUserRole());
+        setupBaseActivityFooter("profile", role);
 
         setupLogout();
         if (user != null) {
             loadAuthProfileData();
         }
+        MaterialButton btn_exit_hospital = findViewById(R.id.btn_exit_hospital);
+        if (btn_exit_hospital != null) {
+            // Only show for Doctors (D) and Assistants (A)
+            if ("D".equals(role) || "A".equals(role)) {
+                String collectionName=role=="D"?"doctors":role=="A"?"assistants":"";
+                db.collection(collectionName).document(user.getUid())
+                                .get().addOnSuccessListener(doc-> {
+                            if (doc.exists()) {
+                                if (isValidUid(doc.getString("hospital_id"))) {
+                                    btn_exit_hospital.setVisibility(View.VISIBLE);
+                                    btn_exit_hospital.setOnClickListener(v -> {
+                                        new AlertDialog.Builder(this)
+                                                .setTitle("Exit Hospital")
+                                                .setMessage("Are you sure you want to leave this hospital? You will no longer be able to manage its data.")
+                                                .setPositiveButton("Exit", (dialog, which) -> exitHospital(role))
+                                                .setNegativeButton("Cancel", null)
+                                                .show();
+                                    });
+                                } else {
+                                    btn_exit_hospital.setVisibility(View.GONE);
+                                }
+                            }
+                        });
+            } else {
+                btn_exit_hospital.setVisibility(View.GONE);
+            }
+        }
     }
+
+    private void exitHospital(String role) {
+        if (user == null) return;
+        MaterialButton btn_exit_hospital = findViewById(R.id.btn_exit_hospital);
+        btn_exit_hospital.setEnabled(true);
+        String collectionName=role=="D"?"doctors":role=="A"?"assistants":"";
+        if(collectionName.isEmpty())return;
+        /// for Doctor, cancel all upcoming treatments! and for assisitants also
+        db.collection(collectionName).document(user.getUid())
+                .update("hospital_id", "")
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Exited hospital", Toast.LENGTH_SHORT).show();
+                    btn_exit_hospital.setEnabled(false);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Hospital", "Failed to exit hospital", e);
+                    Toast.makeText(this, "Failed to exit hospital", Toast.LENGTH_SHORT).show();
+                    btn_exit_hospital.setEnabled(true);
+                });
+
+    }
+
     private void bindProfileViews(String name, String email, String phone) {
-        ViewUtils.setupEditableInfoCard(this, findViewById(R.id.receptionist_name_card),
+        ViewUtils.setupEditableInfoCard(this, findViewById(R.id.profile_name_card),
                 R.drawable.ic_filled_user, "Full Name",
                 (name != null && !name.isEmpty()) ? name : "Set Name",
                 val -> {
-                    updateAuthName(val, findViewById(R.id.receptionist_name_card));
+                    updateAuthName(val, findViewById(R.id.profile_name_card));
                     invalidateProfileCache(); // ✅ Bust cache on update
                 });
 
-        ViewUtils.setupEditableInfoCard(this, findViewById(R.id.receptionist_email_card),
+        ViewUtils.setupEditableInfoCard(this, findViewById(R.id.profile_email_card),
                 R.drawable.ic_mail, "Email Address", email,
                 val -> {
-                    updateAuthEmail(val, findViewById(R.id.receptionist_email_card));
+                    updateAuthEmail(val, findViewById(R.id.profile_email_card));
                     invalidateProfileCache();
                 });
 
-        ViewUtils.setupEditableInfoCard(this, findViewById(R.id.receptionist_phone_card),
+        ViewUtils.setupEditableInfoCard(this, findViewById(R.id.profile_phone_card),
                 R.drawable.ic_contact_book, "+91 9999 9999 99",
                 (isValidUid(phone)) ? phone : "Add Phone",
                 val -> {
-                    updateAuthPhone(val, findViewById(R.id.receptionist_phone_card));
+                    updateAuthPhone(val, findViewById(R.id.profile_phone_card));
                     invalidateProfileCache();
                 });
 
-        View passwordCard = findViewById(R.id.receptionist_password_card);
+        View passwordCard = findViewById(R.id.profile_password_card);
         setupPasswordField(passwordCard);
         ViewUtils.setupEditableInfoCard(this, passwordCard,
                 R.drawable.ic_passkey, "Password", "******",
