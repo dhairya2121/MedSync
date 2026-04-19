@@ -12,6 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MedSync">
         <activity
+            android:name=".utils.BaseSearchHospitalsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.careTaker.SearchHospitals"
+            android:exported="false" />
+        <activity
+            android:name=".activities.assistant.SearchHospitals"
+            android:exported="false" />
+        <activity
             android:name=".activities.doctor.AppointmentDetails"
             android:exported="false" />
         <activity

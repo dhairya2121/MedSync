@@ -3,78 +3,40 @@ package com.example.medsync.activities.receptionist;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.RatingBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.medsync.R;
-import com.example.medsync.utils.BaseActivity;
-import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.example.medsync.utils.BaseSearchHospitalsActivity;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
-public class SearchHospitals extends BaseActivity {
-
-    private EditText etSearch;
-    private MaterialButton btnSearch, btnAddNew;
-    private RecyclerView rvHospitals;
-    private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
-    private HospitalAdapter adapter;
-    private List<Map<String, Object>> hospitalList;
+public class SearchHospitals extends BaseSearchHospitalsActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search_hospitals);
-        applyEdgeToEdgePadding(findViewById(R.id.main));
-        setupBaseActivityFooter("rolebased", "R");
 
-        db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
-        hospitalList = new ArrayList<>();
+        // Receptionist specific: Enable and handle "Add New" Button
+        View btnAddNew = findViewById(R.id.btn_add_new);
+        if (btnAddNew != null) {
+            btnAddNew.setVisibility(View.VISIBLE);
+            btnAddNew.setOnClickListener(v -> createNewHospitalAndLink());
+        }
+    }
 
-        etSearch = findViewById(R.id.et_search);
-        btnSearch = findViewById(R.id.btn_search_go);
-        btnAddNew = findViewById(R.id.btn_add_new);
-        rvHospitals = findViewById(R.id.rv_hospitals);
+    @Override
+    protected String getRoleCode() { return "R"; }
 
-        adapter = new HospitalAdapter(hospitalList);
-        rvHospitals.setLayoutManager(new LinearLayoutManager(this));
-        rvHospitals.setAdapter(adapter);
-
-        btnSearch.setOnClickListener(v -> {
-            String query = etSearch.getText().toString().trim();
-            if (!query.isEmpty()) {
-                searchHospitals(query);
-            } else {
-                fetchAllHospitals();
-            }
-        });
-
-        // ✅ Handle "Add New" Click
-        btnAddNew.setOnClickListener(v -> createNewHospitalAndLink());
-
-        fetchAllHospitals();
+    @Override
+    protected void onHospitalClick(String hospitalId, Map<String, Object> data) {
+        if (hospitalId != null) {
+            linkHospitalToReceptionist(hospitalId);
+        }
     }
 
     private void createNewHospitalAndLink() {
-        // 1. Create Dummy Hospital Data
         Map<String, Object> dummyHospital = new HashMap<>();
         dummyHospital.put("legal_name", "New Hospital Name");
         dummyHospital.put("address", "Enter Address");
@@ -83,14 +45,9 @@ public class SearchHospitals extends BaseActivity {
         dummyHospital.put("rating", 0.0);
         dummyHospital.put("reviewCount", 0);
 
-        // 2. Add to "hospitals" collection
         db.collection("hospitals")
                 .add(dummyHospital)
-                .addOnSuccessListener(documentReference -> {
-                    String newHospitalId = documentReference.getId();
-                    // 3. Link to current Receptionist
-                    linkHospitalToReceptionist(newHospitalId);
-                })
+                .addOnSuccessListener(ref -> linkHospitalToReceptionist(ref.getId()))
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to create hospital", Toast.LENGTH_SHORT).show());
     }
 
@@ -101,118 +58,14 @@ public class SearchHospitals extends BaseActivity {
         db.collection("receptionists").document(uid)
                 .update("hospital_id", hospitalId)
                 .addOnSuccessListener(aVoid -> {
-                    SharedPreferences sharedPreferences = getSharedPreferences("medsync_prefs", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("hospital_id", hospitalId);
-                    editor.apply();
-                    Intent intent = new Intent(this, Hospital.class);
-                    startActivity(intent);
+                    getSharedPreferences("medsync_prefs", MODE_PRIVATE)
+                            .edit()
+                            .putString("hospital_id", hospitalId)
+                            .apply();
+
+                    startActivity(new Intent(this, Hospital.class));
                     finish();
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to link hospital", Toast.LENGTH_SHORT).show());
-    }
-
-    private class HospitalAdapter extends RecyclerView.Adapter<HospitalAdapter.ViewHolder> {
-        private final List<Map<String, Object>> hospitals;
-
-        public HospitalAdapter(List<Map<String, Object>> hospitals) {
-            this.hospitals = hospitals;
-        }
-
-        public void updateData(List<Map<String, Object>> newData) {
-            hospitals.clear();
-            hospitals.addAll(newData);
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_hospital_card, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {Map<String, Object> data = hospitals.get(position);
-
-            holder.tvName.setText((String) data.getOrDefault("legal_name", "Unknown Hospital"));
-            holder.tvLocation.setText((String) data.getOrDefault("address", "No address provided"));
-
-            // Binding Rating Data
-            Object ratingObj = data.get("rating");
-            Object countObj = data.get("reviewCount");
-
-            double rating = 0.0;
-            if (ratingObj instanceof Double) rating = (Double) ratingObj;
-            else if (ratingObj instanceof Long) rating = ((Long) ratingObj).doubleValue();
-
-            long count = (countObj instanceof Long) ? (Long) countObj : 0;
-
-            holder.rbHospital.setRating((float) rating);
-            holder.tvRatingText.setText(String.format(Locale.getDefault(), "%.1f (%d)", rating, count));
-
-            // Keep your existing OnClickListeners...
-
-            // ✅ Handle existing item click
-            holder.itemView.setOnClickListener(v -> {
-                String hospitalId = (String) data.get("hospital_id");
-                if (hospitalId != null) {
-                    linkHospitalToReceptionist(hospitalId);
-                }
-            });
-        }
-
-        @Override
-        public int getItemCount() { return hospitals.size(); }
-
-        class ViewHolder extends RecyclerView.ViewHolder {
-            TextView tvName, tvLocation, tvRatingText;
-            RatingBar rbHospital;
-
-            public ViewHolder(View itemView) {
-                super(itemView);
-                tvName = itemView.findViewById(R.id.tv_hospital_name);
-                tvLocation = itemView.findViewById(R.id.tv_location);
-                tvRatingText = itemView.findViewById(R.id.tv_rating_text);
-                rbHospital = itemView.findViewById(R.id.rb_hospital);
-            }
-        }
-    }
-
-    private void fetchAllHospitals() {
-        db.collection("hospitals").limit(20).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Map<String, Object>> results = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Map<String, Object> data = doc.getData();
-                        data.put("hospital_id", doc.getId());
-                        results.add(data);
-                    }
-                    updateUI(results);
-                });
-    }
-
-    private void searchHospitals(String searchText) {
-        db.collection("hospitals")
-                .orderBy("legal_name")
-                .startAt(searchText)
-                .endAt(searchText + "\uf8ff")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Map<String, Object>> results = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Map<String, Object> data = doc.getData();
-                        data.put("hospital_id", doc.getId());
-                        results.add(data);
-                    }
-                    updateUI(results);
-                });
-    }
-
-    private void updateUI(List<Map<String, Object>> results) {
-        if (results.isEmpty()) {
-            Toast.makeText(this, "No hospitals found", Toast.LENGTH_SHORT).show();
-        }
-        adapter.updateData(results);
     }
 }

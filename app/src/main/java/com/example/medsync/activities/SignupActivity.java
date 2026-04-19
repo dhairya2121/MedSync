@@ -117,11 +117,13 @@ public class SignupActivity extends AppCompatActivity {
                                             case "D":collection="doctors";break;
                                             case "P":collection="patients";break;
                                             case "C":collection="careTakers";break;
+                                            default : collection="users";
                                         }
                                         Map<String, Object> roleBasedUserMap = new HashMap<>();
                                         roleBasedUserMap.put("name", name);
                                         roleBasedUserMap.put("email",user.getEmail());
-                                        db.collection(collection).add(roleBasedUserMap).addOnSuccessListener(roleBasedDoc->{
+                                        db.collection(collection).document(user.getUid()).set(roleBasedUserMap)
+                                                .addOnSuccessListener(roleBasedDoc->{
                                             ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
                                             Toast.makeText(SignupActivity.this, "User Account Created!", Toast.LENGTH_SHORT).show();
                                             createRoleBasedDocuments(user,role);

@@ -1,13 +1,14 @@
-package com.example.medsync.activities.patient;
+package com.example.medsync.activities.careTaker;
 
 import android.content.Intent;
+import com.example.medsync.activities.patient.HospitalDetails;
 import com.example.medsync.utils.BaseSearchHospitalsActivity;
 import java.util.Map;
 
 public class SearchHospitals extends BaseSearchHospitalsActivity {
 
     @Override
-    protected String getRoleCode() { return "P"; }
+    protected String getRoleCode() { return "C"; }
 
     @Override
     protected void onHospitalClick(String hospitalId, Map<String, Object> data) {

@@ -167,11 +167,10 @@ public class ViewUtils {
         if (role != null && btnRoleBased != null) {
             switch (role) {
                 case "P":
-                    btnRoleBased.setImageResource(R.drawable.ic_search_plus);break;
                 case "D":
                 case "C":
                 case "A":
-                    btnRoleBased.setImageResource(R.drawable.ic_analytics);
+                    btnRoleBased.setImageResource(R.drawable.ic_search_plus);
                     break;
                 case "R":
                     btnRoleBased.setImageResource(R.drawable.ic_hospital);
@@ -220,9 +219,14 @@ public class ViewUtils {
                             targetActivity = com.example.medsync.activities.receptionist.Hospital.class;
                             break;
                         case "P":
-                            targetActivity = com.example.medsync.activities.patient.SearchHospitals.class;
+                            targetActivity = com.example.medsync.activities.patient.SearchHospitals.class;break;
+                        case "D":
+                            targetActivity =com.example.medsync.activities.doctor.SearchHospitals.class;break;
+                        case "A" :
+                            targetActivity = com.example.medsync.activities.assistant.SearchHospitals.class;break;
+                        case "C":
+                            targetActivity = com.example.medsync.activities.careTaker.SearchHospitals.class;break;
 
-                        // case "D": targetActivity = DoctorActivity.class; break;
                     }
                 }
 
