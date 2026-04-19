@@ -36,7 +36,10 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         mAuth = FirebaseAuth.getInstance();
-//        mAuth.signOut(); //for debugging
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            ViewUtils.redirectToRoleBasedDashboard(LoginActivity.this,currentUser);
+        }
         MaterialButton loginBtn = findViewById(R.id.loginBtn);
         EditText emailEt = findViewById(R.id.etEmail);
         EditText passEt = findViewById(R.id.etPass);
@@ -73,13 +76,4 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-
-            ViewUtils.redirectToRoleBasedDashboard(LoginActivity.this,currentUser);
-        }
-    }
 }

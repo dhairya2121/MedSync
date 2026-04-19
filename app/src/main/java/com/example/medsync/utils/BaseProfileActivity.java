@@ -57,7 +57,6 @@ public abstract class BaseProfileActivity extends BaseActivity {
         user = mAuth.getCurrentUser();
     }
 
-    // --- CACHE LOGIC ---
     private void saveProfileCache(String name, String email, String phone) {
         getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit()
                 .putString(KEY_NAME, name)
@@ -98,7 +97,7 @@ public abstract class BaseProfileActivity extends BaseActivity {
 
     protected void bindViewsFromData(String name, String email, String phone, View nameCard, View emailCard, View phoneCard, View passCard) {
         ViewUtils.setupEditableInfoCard(this, nameCard, R.drawable.ic_filled_user, "Full Name",
-                (name != null && !name.isEmpty()) ? name : "Set Name", val -> {
+                (name != null && !name.isEmpty()) ? name : "", val -> {
                     ViewUtils.setInputState(this, nameCard, "LOADING");
                     updateAuthName(val, nameCard);
                 });
@@ -115,7 +114,7 @@ public abstract class BaseProfileActivity extends BaseActivity {
                 });
 
         setupPasswordField(passCard);
-        ViewUtils.setupEditableInfoCard(this, passCard, R.drawable.ic_passkey, "Password", "******", val -> {
+        ViewUtils.setupEditableInfoCard(this, passCard, R.drawable.ic_passkey, "Password", "", val -> {
             ViewUtils.setInputState(this, passCard, "LOADING");
             updateAuthPassword(val, passCard);
         });

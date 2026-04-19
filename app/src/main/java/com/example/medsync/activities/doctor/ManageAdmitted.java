@@ -72,3 +72,4 @@ public class ManageAdmitted extends BaseActivity {
         });
     }
 }
+// check full process once, book appointment, Done Appointment, Advice for admit, Admit, Discharge

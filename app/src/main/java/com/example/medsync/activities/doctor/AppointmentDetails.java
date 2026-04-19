@@ -53,12 +53,15 @@ public class AppointmentDetails extends BaseActivity {
     }
 
     private void loadData() {
+        TextView tvPatientName=findViewById(R.id.tvPatientName);
+        TextView tvPatientBio=findViewById(R.id.tvPatientBio);
+        TextView tvProfileInitial=findViewById(R.id.tvProfileInitial);
         db.collection("patients").document(patientId).get().addOnSuccessListener(doc -> {
             Patient p = doc.toObject(Patient.class);
-            if (p != null) {
-                ((TextView) findViewById(R.id.tvPatientName)).setText(p.name);
-                ((TextView) findViewById(R.id.tvPatientBio)).setText(p.gender + ", " + p.age + " yrs");
-                ((TextView) findViewById(R.id.tvProfileInitial)).setText(p.name.substring(0, 1).toUpperCase());
+            if (p != null && tvPatientName!=null && tvProfileInitial!=null && tvPatientBio!=null) {
+                tvPatientName.setText(p.name);
+                tvPatientBio.setText(p.gender + ", " + p.age + " yrs");
+                tvProfileInitial.setText(p.name.substring(0, 1).toUpperCase());
             }
         });
 
@@ -135,11 +138,15 @@ public class AppointmentDetails extends BaseActivity {
                 )
                 .addOnSuccessListener(a -> {
                     if (treatment != null && treatment.getTimestamp() != null) {
-                        BookedSlot slotToRemove = new BookedSlot(treatment.getTimestamp(), treatmentId);
+                        BookedSlot slotToRemove = new BookedSlot(treatment.start, treatmentId);
                         db.collection("doctors").document(doctorUid)
                                 .update("booked_slots", FieldValue.arrayRemove(slotToRemove))
                                 .addOnSuccessListener(b -> {
-                                    Toast.makeText(this, "Consultation Completed", Toast.LENGTH_SHORT).show();
+                                    if(status.name()=="SUCCESS"){
+                                        Toast.makeText(this, "Consultation Completed", Toast.LENGTH_SHORT).show();
+                                    }else if(status.name()=="FAILED"){
+                                        Toast.makeText(this, "Consultation Failed", Toast.LENGTH_SHORT).show();
+                                    }
                                     finish();
                                 });
                     } else {

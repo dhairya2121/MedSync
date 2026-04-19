@@ -195,20 +195,27 @@ public class ScheduleAppointment extends BaseActivity {
 
         TimeSlot selectedSlot = (TimeSlot) lastSelectedBtn.getTag();
 
-        // Calculate the exact Timestamp for the appointment
-        Calendar appointmentCal = Calendar.getInstance();
-        appointmentCal.setTimeInMillis(selectedDateMillis);
+        // 1. Calculate the exact START Timestamp (Selected Date + Slot Start Time)
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(selectedDateMillis); // Midnight of selected day
 
         Calendar slotTime = Calendar.getInstance();
-        slotTime.setTime(selectedSlot.start.toDate());
+        slotTime.setTime(selectedSlot.start.toDate()); // Time from the slot
 
-        appointmentCal.set(Calendar.HOUR_OF_DAY, slotTime.get(Calendar.HOUR_OF_DAY));
-        appointmentCal.set(Calendar.MINUTE, slotTime.get(Calendar.MINUTE));
-        appointmentCal.set(Calendar.SECOND, 0);
-        appointmentCal.set(Calendar.MILLISECOND, 0);
+        cal.set(Calendar.HOUR_OF_DAY, slotTime.get(Calendar.HOUR_OF_DAY));
+        cal.set(Calendar.MINUTE, slotTime.get(Calendar.MINUTE));
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Timestamp startTimestamp = new Timestamp(cal.getTime());
 
-        Timestamp finalTimestamp = new Timestamp(appointmentCal.getTime());
+        // 2. Calculate the exact END Timestamp (Selected Date + Slot End Time)
+        // Re-using the calendar but setting to Slot End Time
+        slotTime.setTime(selectedSlot.end.toDate());
+        cal.set(Calendar.HOUR_OF_DAY, slotTime.get(Calendar.HOUR_OF_DAY));
+        cal.set(Calendar.MINUTE, slotTime.get(Calendar.MINUTE));
+        Timestamp endTimestamp = new Timestamp(cal.getTime());
 
+        // 3. Populate Treatment object
         Treatment t = new Treatment();
         t.type = TreatmentType.APPOINTMENT.name();
         t.status = TreatmentStatus.UPCOMING.name();
@@ -217,22 +224,25 @@ public class ScheduleAppointment extends BaseActivity {
         t.patient_name = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         t.examiner_id = doctorId;
         t.examiner_name = doctorName;
-        t.setTimestamp(finalTimestamp);
-        t.start = timeFormat.format(selectedSlot.start.toDate());
-        t.end = timeFormat.format(selectedSlot.end.toDate());
 
-        // 1. Add Treatment to hospital sub-collection
+        // Use the Timestamp objects directly
+        t.setTimestamp(startTimestamp); // Main searchable field
+        t.start = startTimestamp;
+        t.end = endTimestamp;
+
+        // 4. Save to Firestore
         db.collection("hospitals").document(hospitalId)
                 .collection("treatments").add(t)
                 .addOnSuccessListener(docRef -> {
                     String treatmentId = docRef.getId();
-                    BookedSlot bs=new BookedSlot(finalTimestamp,treatmentId);
-                    // 2. Update doctor's booked_slots using arrayUnion
+                    BookedSlot bs = new BookedSlot(startTimestamp, treatmentId);
+
+                    // Update doctor's booked_slots using arrayUnion
                     db.collection("doctors").document(doctorId)
                             .update("booked_slots", FieldValue.arrayUnion(bs))
                             .addOnSuccessListener(aVoid -> {
 
-                                // 3. Create a Bill with the SAME ID as the Treatment
+                                // Create the corresponding Bill
                                 Bill b = new Bill();
                                 b.treatment_id = treatmentId;
                                 b.patient_id = t.patient_id;
@@ -240,28 +250,36 @@ public class ScheduleAppointment extends BaseActivity {
                                 b.generated_at = Timestamp.now();
                                 b.status = "PENDING";
 
-                                // Add Appointment Fee from Doctor profile
                                 if (currentDoctor != null) {
                                     b.items.put("Appointment Fee (" + doctorName + ")", (double) currentDoctor.appointmentFee);
                                 }
                                 b.calculateTotal();
 
-                                // Save Bill to db/hospitals/hospitalId/bills/treatmentId
                                 db.collection("hospitals").document(hospitalId)
                                         .collection("bills").document(treatmentId)
                                         .set(b)
                                         .addOnSuccessListener(billVoid -> {
-                                            Toast.makeText(this, "Appointment Confirmed!", Toast.LENGTH_SHORT).show();
-                                            finish();
+                                            db.collection("patients").document(t.patient_id)
+                                                            .update("hospital_id",hospitalId)
+                                                                    .addOnSuccessListener(p->{
+                                                                        Toast.makeText(this, "Appointment Confirmed!", Toast.LENGTH_SHORT).show();
+                                                                        finish();
+                                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        Log.e("Patient", "hosptial_id update failed", e);
+                                                        finish();
+                                                    });
+
                                         })
                                         .addOnFailureListener(e -> {
                                             Log.e("Schedule", "Bill creation failed", e);
-                                            finish(); // Still finish as appointment was saved
+                                            finish();
                                         });
                             });
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Booking failed", Toast.LENGTH_SHORT).show());
     }
+
     private void showEmptyState(String msg) {
         TextView tv = new TextView(this);
         tv.setText(msg);

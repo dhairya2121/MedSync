@@ -26,7 +26,7 @@ public class ManageCareTakers extends BaseActivity {
         db = FirebaseFirestore.getInstance();
         hospitalId = getSharedPreferences("medsync_prefs", MODE_PRIVATE).getString("hospital_id", "");
 
-        setupBaseActivityNavbar("R", "Manage Care Takers");
+        setupBaseActivityNavbar("R", "Receptionist");
         setupBaseActivityFooter("home", "R");
         applyEdgeToEdgePadding(findViewById(R.id.main));
 

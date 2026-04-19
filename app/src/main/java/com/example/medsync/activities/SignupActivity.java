@@ -110,11 +110,27 @@ public class SignupActivity extends AppCompatActivity {
 
                             db.collection("users").document(user.getUid()).set(userMap)
                                     .addOnSuccessListener(aVoid -> {
-                                        ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
-                                        Toast.makeText(SignupActivity.this, "User Account Created!", Toast.LENGTH_SHORT).show();
-                                        createRoleBasedDocuments(user,role);
-                                        // 3. NOW it is safe to redirect
-                                        ViewUtils.redirectToRoleBasedDashboard(SignupActivity.this,user);
+                                        String collection="";
+                                        switch(role){
+                                            case "R":collection="receptionists";break;
+                                            case "A":collection="assistants";break;
+                                            case "D":collection="doctors";break;
+                                            case "P":collection="patients";break;
+                                            case "C":collection="careTakers";break;
+                                        }
+                                        Map<String, Object> roleBasedUserMap = new HashMap<>();
+                                        roleBasedUserMap.put("name", name);
+                                        roleBasedUserMap.put("email",user.getEmail());
+                                        db.collection(collection).add(roleBasedUserMap).addOnSuccessListener(roleBasedDoc->{
+                                            ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
+                                            Toast.makeText(SignupActivity.this, "User Account Created!", Toast.LENGTH_SHORT).show();
+                                            createRoleBasedDocuments(user,role);
+                                            ViewUtils.redirectToRoleBasedDashboard(SignupActivity.this,user);
+                                        }).addOnFailureListener(e -> {
+                                            ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");
+                                            Toast.makeText(SignupActivity.this, "Database Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        });
+
                                     })
                                     .addOnFailureListener(e -> {
                                         ViewUtils.setLoading(SignupActivity.this, false, signupBtn, "", "Sign Up");

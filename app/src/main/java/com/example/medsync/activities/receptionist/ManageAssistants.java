@@ -27,7 +27,7 @@ public class ManageAssistants extends BaseActivity {
         db = FirebaseFirestore.getInstance();
         hospitalId = getSharedPreferences("medsync_prefs", MODE_PRIVATE).getString("hospital_id", "");
 
-        setupBaseActivityNavbar("R", "Manage Assistants");
+        setupBaseActivityNavbar("R", "Receptionist");
         setupBaseActivityFooter("home", "R");
 
         rvAssistants = findViewById(R.id.rvAssistants);

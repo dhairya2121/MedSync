@@ -397,7 +397,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Scheduled for today"
+                            android:text="Upcoming appointments"
                             android:textColor="#546E7A"
                             android:textSize="20sp" />
                     </LinearLayout>
@@ -520,7 +520,6 @@
                             android:textColor="#E65100"
                             android:textSize="42sp"
                             android:textStyle="bold"
-
                             android:fontFamily="sans-serif-condensed-light" />
 
                         <TextView

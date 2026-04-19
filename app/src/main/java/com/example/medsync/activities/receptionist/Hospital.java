@@ -390,6 +390,10 @@ public class Hospital extends BaseActivity {
                                 .addOnSuccessListener(aVoid2 -> {
                                     Toast.makeText(this, "Hospital deleted", Toast.LENGTH_SHORT).show();
                                     cachedHospitalId = null;
+                                    getSharedPreferences("medsync_prefs", MODE_PRIVATE)
+                                            .edit()
+                                            .remove("hospital_id")
+                                            .apply();
                                     navigateToSearch();
                                 })
                                 .addOnFailureListener(e -> {
@@ -410,6 +414,10 @@ public class Hospital extends BaseActivity {
                 .update("hospital_id", "")
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Exited hospital", Toast.LENGTH_SHORT).show();
+                    getSharedPreferences("medsync_prefs", MODE_PRIVATE)
+                            .edit()
+                            .remove("hospital_id")
+                            .apply();
                     cachedHospitalId = null;
                     navigateToSearch();
                 })

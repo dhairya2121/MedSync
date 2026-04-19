@@ -10,8 +10,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.medsync.R;
 import com.example.medsync.activities.receptionist.AdmittedPatientDetails;
 import com.example.medsync.model.Patient;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class AdmittedPatientAdapter extends RecyclerView.Adapter<AdmittedPatientAdapter.ViewHolder> {
 
@@ -39,8 +42,14 @@ public class AdmittedPatientAdapter extends RecyclerView.Adapter<AdmittedPatient
 // ... inside onBindViewHolder ...
 
         // 2. Display Admission Date (Formatted as Admitted on dd month)
-        holder.tvTreatmentType.setText("Admitted on " + item.admittedOn);
-
+        if (item.admittedOn != null) {
+            // Format to show only Date (e.g., 14 April)
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MMMM", Locale.getDefault());
+            String formattedDate = sdf.format(item.admittedOn.toDate());
+            holder.tvTreatmentType.setText("Admitted on " + formattedDate);
+        } else {
+            holder.tvTreatmentType.setText("Admitted few days ago");
+        }
         // 3. Display Room Number (Room Badge)
         holder.tvRoomBadge.setText("Room " + item.room_no);
 
@@ -61,7 +70,15 @@ public class AdmittedPatientAdapter extends RecyclerView.Adapter<AdmittedPatient
             intent.putExtra("patient_id", item.id);
             v.getContext().startActivity(intent);
         });
-
+        // Inside AdmittedPatientAdapter.java -> onBindViewHolder
+//        if (item.admittedOn != null) {
+//            // Format: "14 April"
+//            SimpleDateFormat sdf = new SimpleDateFormat("dd MMMM", Locale.getDefault());
+//            String formattedDate = sdf.format(item.admittedOn.toDate());
+//            holder.tvAdmittedDate.setText("Admitted on " + formattedDate);
+//        } else {
+//            holder.tvAdmittedDate.setText("Admitted on N/A");
+//        }
     }
 
     @Override

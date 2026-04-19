@@ -1,5 +1,7 @@
 package com.example.medsync.activities.receptionist;
 
+import static com.example.medsync.utils.ViewUtils.isValidUid;
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,18 +14,23 @@ import com.example.medsync.R;
 import com.example.medsync.model.Bill;
 import com.example.medsync.model.Patient;
 import com.example.medsync.model.Treatment;
+import com.example.medsync.model.enums.TreatmentType;
 import com.example.medsync.utils.BaseActivity;
 import com.example.medsync.utils.ViewUtils;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 public class AdmittedPatientDetails extends BaseActivity {
 
-    private String patientId,patientName,doctorName;
+    private String patientId,patientName,doctorName,treatmentId,doctorId;
     private FirebaseFirestore db;
     private TextView tvInitial, tvFullName;
     private View billCard;
@@ -42,7 +49,7 @@ public class AdmittedPatientDetails extends BaseActivity {
         hospitalId = getSharedPreferences("medsync_prefs",Context.MODE_PRIVATE).getString("hospital_id", null);
 
         initViews();
-        setupBaseActivityNavbar("R", "Admitted Details");
+        setupBaseActivityNavbar("R", "Receptionist");
         setupBaseActivityFooter("home", "R");
 
         if (patientId != null) {
@@ -66,6 +73,7 @@ public class AdmittedPatientDetails extends BaseActivity {
             // Redirect to future discharge activity
              Intent intent = new Intent(this, DischargePatient.class);
              intent.putExtra("patient_id", patientId);
+             intent.putExtra("treatment_id", treatmentId);
              startActivity(intent);
              finish();
         });
@@ -73,6 +81,8 @@ public class AdmittedPatientDetails extends BaseActivity {
             Intent intent = new Intent(this, ScheduleOperation.class);
             intent.putExtra("PATIENT_ID", patientId);
             intent.putExtra("PATIENT_NAME", patientName);
+            intent.putExtra("DOCTOR_ID", doctorId);
+
             intent.putExtra("DOCTOR_NAME", doctorName); // Use whatever field holds the doctor name
             startActivity(intent);
         });
@@ -89,22 +99,26 @@ public class AdmittedPatientDetails extends BaseActivity {
                                 p.name.substring(0,1).toUpperCase() : "P");
                         patientName=p.name;
                         if(p.doctor_id != null) {
-                            db.collection("doctors").document(p.doctor_id).addSnapshotListener((doctorDoc, err) -> {
+                            db.collection("doctors").document(p.doctor_id)
+                                    .addSnapshotListener((doctorDoc, err) -> {
                                 if (err != null || doctorDoc == null || !doctorDoc.exists()) {
-                                    doctorName = "N/A";
+                                    doctorName = "Doctor";
                                 } else {
                                     doctorName = doctorDoc.getString("name");
-                                    // If the doctor name changes, we don't need to do anything
-                                    // because doctorName is only used when clicking "Schedule Operation"
                                 }
                             });
                         }
+                        String admittedStr = "N/A";
+                        if (p.admittedOn != null) {
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+                            admittedStr = sdf.format(p.admittedOn.toDate());
+                        }
 
-                        // Reusing the setupField logic from your PatientDetails activity
                         setupField(findViewById(R.id.roomNo), "Room " + p.room_no);
-                        setupField(findViewById(R.id.admittedDate), "Admitted: " + p.admittedOn);
+                        setupField(findViewById(R.id.admittedDate), "Admitted: " + admittedStr);
                         setupField(findViewById(R.id.gender), p.gender);
                         setupField(findViewById(R.id.age), p.age + " yrs");
+
                         fetchPatientTreatments();
                     }
                 })
@@ -123,10 +137,14 @@ public class AdmittedPatientDetails extends BaseActivity {
 
     // Inside fetchPatientTreatments()
     private void fetchPatientTreatments() {
+        List<String> status=new ArrayList<String>();
+        status.add("ONGOING");status.add("SUCCESS");
         db.collection("hospitals").document(hospitalId)
                 .collection("treatments")
                 .whereEqualTo("patient_id", patientId)
-                .whereEqualTo("type", "MEDICATION") // Only Medication visible to Receptionist
+                .whereEqualTo("type", "MEDICATION")
+                .whereIn("status",status )
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshots, e) -> {
                     llTreatmentsContainer.removeAllViews();
                     if (snapshots == null || snapshots.isEmpty()) {
@@ -134,7 +152,11 @@ public class AdmittedPatientDetails extends BaseActivity {
                         return;
                     }
                     tvTreatmentsTitle.setVisibility(View.VISIBLE);
-                    for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
+                    doctorId=snapshots.getDocuments().get(0).getString("examiner_id");
+                    treatmentId= snapshots.getDocuments().get(0).getId();
+                    if(isValidUid(treatmentId) && isValidUid(doctorId))fetchPatientBill();
+
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
                         Treatment t = doc.toObject(Treatment.class);
                         if (t != null) addTreatmentCard(t);
                     }
@@ -154,7 +176,7 @@ public class AdmittedPatientDetails extends BaseActivity {
         }
 
         // 2. Set Basic Info
-        ((TextView) card.findViewById(R.id.tvTreatmentType)).setText(t.type);
+        ((TextView) card.findViewById(R.id.tvTreatmentType)).setText(TreatmentType.valueOf(t.type).getDisplayName());
         ((TextView) card.findViewById(R.id.tvTreatmentDate)).setText(dateStr);
 
         // Safety check for doctor name
@@ -176,28 +198,28 @@ public class AdmittedPatientDetails extends BaseActivity {
 
     // Update fetchPatientBill to add logging for debugging
     private void fetchPatientBill() {
-        if (hospitalId == null || patientId == null) {
+        if (hospitalId == null || patientId == null || treatmentId==null) {
             android.util.Log.e("BILL_DEBUG", "Hospital or Patient ID is null");
             return;
         }
 
         db.collection("hospitals").document(hospitalId)
                 .collection("bills")
-                .whereEqualTo("patient_id", patientId)
-                .addSnapshotListener((snapshots, e) -> {
+                .document(treatmentId)
+                .addSnapshotListener((snapshot, e) -> {
                     if (e != null) {
                         android.util.Log.e("BILL_DEBUG", "Error fetching bill", e);
                         return;
                     }
 
-                    if (snapshots == null || snapshots.isEmpty()) {
+                    if (snapshot == null || !snapshot.exists()) {
                         // If no bill exists, maybe show a "No Bill" message or keep it hidden
                         android.util.Log.d("BILL_DEBUG", "No bill found for patient: " + patientId);
                         findViewById(R.id.tvBillTitle).setVisibility(View.GONE);
                         billCard.setVisibility(View.GONE);
                     } else {
                         android.util.Log.d("BILL_DEBUG", "Bill found!");
-                        Bill bill = snapshots.getDocuments().get(0).toObject(Bill.class);
+                        Bill bill = snapshot.toObject(Bill.class);
                         if (bill != null) {
                             displayBill(bill);
                         }

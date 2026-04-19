@@ -8,13 +8,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.medsync.R;
 import com.example.medsync.adapters.AppointmentAdapter;
+import com.example.medsync.model.BookedSlot;
 import com.example.medsync.model.Treatment;
 import com.example.medsync.model.enums.TreatmentType;
 import com.example.medsync.utils.BaseActivity;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ManageAppointments extends BaseActivity implements AppointmentAdapter.OnAppointmentListener {
@@ -55,32 +58,37 @@ public class ManageAppointments extends BaseActivity implements AppointmentAdapt
     }
 
     private void fetchTreatments() {
-        // Correctly initialize the list of types for the query
-        List<String> appointmentTypes = new ArrayList<>();
-        appointmentTypes.add(TreatmentType.APPOINTMENT.name());
-        appointmentTypes.add(TreatmentType.FOLLOW_UP.name());
-        appointmentTypes.add(TreatmentType.CHECKUP.name());
+        List<String> appointmentTypes = Arrays.asList(
+                TreatmentType.APPOINTMENT.name(),
+                TreatmentType.FOLLOW_UP.name(),
+                TreatmentType.CHECKUP.name()
+        );
 
-        // Listening for treatments of specific appointment types
         db.collection("hospitals").document(hospitalId).collection("treatments")
-                .whereIn("type", appointmentTypes) // Corrected syntax
+                .whereIn("type", appointmentTypes)
                 .addSnapshotListener((value, error) -> {
-                    if (error != null) {
-                        Toast.makeText(this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                    if (error != null || value == null) return;
 
-                    List<Treatment> list = new ArrayList<>();
-                    if (value != null) {
-                        for (QueryDocumentSnapshot doc : value) {
-                            Treatment t = doc.toObject(Treatment.class);
-                            t.setId(doc.getId());
-                            list.add(t);
-                        }
+                    List<Treatment> validAppointments = new ArrayList<>();
+
+                    for (QueryDocumentSnapshot doc : value) {
+                        Treatment t = doc.toObject(Treatment.class);
+                        t.setId(doc.getId());
+
+                        // Directly check the patient document
+                        db.collection("patients").document(t.patient_id).get()
+                                .addOnSuccessListener(pDoc -> {
+                                    Boolean isAdmitted = pDoc.getBoolean("isAdmitted");
+                                    // If not admitted, add to list and refresh UI
+                                    if (isAdmitted == null || !isAdmitted) {
+                                        validAppointments.add(t);
+                                        adapter.setTreatments(new ArrayList<>(validAppointments));
+                                    }
+                                });
                     }
-                    adapter.setTreatments(list);
                 });
     }
+
 
     @Override
     public void onAdmitClick(Treatment treatment) {
@@ -99,10 +107,30 @@ public class ManageAppointments extends BaseActivity implements AppointmentAdapt
     }
     @Override
     public void onDeleteClick(Treatment treatment) {
-        db.collection("hospitals").document(hospitalId)
-                .collection("treatments").document(treatment.getId())
-                .delete()
-                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Appointment Deleted", Toast.LENGTH_SHORT).show())
+        BookedSlot b=new BookedSlot(treatment.start,treatment.getId());
+        db.collection("doctors").document(treatment.examiner_id)
+                        .update("booked_slots", FieldValue.arrayRemove(b))
+                                .addOnSuccessListener(d->{
+                                    db.collection("hospitals").document(hospitalId)
+                                            .collection("treatments").document(treatment.getId())
+                                            .delete()
+                                            .addOnSuccessListener(aVoid -> {
+                                                db.collection("hospitals").document(hospitalId)
+                                                                .collection("treatments")
+                                                                        .whereEqualTo("patient_id",treatment.patient_id)
+                                                                                .get().addOnSuccessListener(treatmentList->{
+                                                                                    if(treatmentList==null || treatmentList.isEmpty()){
+                                                                                        db.collection("patients").document(treatment.patient_id).update("hospital_id","")
+                                                                                                .addOnSuccessListener(p->{
+                                                                                                    Toast.makeText(this, "Appointment Deleted", Toast.LENGTH_SHORT).show();
+                                                                                                });
+                                                                                    }
+                                                        });
+                                            })
+                                            .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete", Toast.LENGTH_SHORT).show());
+                                })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete", Toast.LENGTH_SHORT).show());
+
+
     }
 }

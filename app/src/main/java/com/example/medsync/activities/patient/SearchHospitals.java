@@ -86,7 +86,7 @@ public class SearchHospitals extends BaseActivity {
         TextView tvUserInitial = findViewById(R.id.tvUserInitial);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
+        if (user != null && tvUserName!=null && tvUserSubtext!=null && tvUserInitial!=null) {
             String name = user.getDisplayName() != null ? user.getDisplayName() : "Patient User";
             tvUserName.setText(name);
             tvUserSubtext.setText("Patient Account");

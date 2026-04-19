@@ -47,7 +47,7 @@ public class PatientDetails extends BaseActivity implements TreatmentAdapter.OnT
                 .getString("hospital_id", "");
 
         initViews();
-        setupBaseActivityNavbar("R", "Patient Info");
+        setupBaseActivityNavbar("R", "Receptionist");
         setupBaseActivityFooter("home", "R");
 
 
@@ -110,7 +110,12 @@ public class PatientDetails extends BaseActivity implements TreatmentAdapter.OnT
         if (root != null) {
             TextView tvField = root.findViewById(R.id.tv_field);
             if (tvField != null) {
-                tvField.setText(value != null && !value.isEmpty() ? value : "N/A");
+                if(value != null && !value.isEmpty()){
+                    tvField.setText(value);
+                }
+                else{
+                    tvField.setVisibility(View.GONE);
+                }
             }
         }
     }

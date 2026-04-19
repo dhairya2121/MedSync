@@ -14,6 +14,7 @@ import com.example.medsync.model.enums.TreatmentType;
 import com.example.medsync.utils.BaseActivity;
 import com.example.medsync.utils.ViewUtils;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.WriteBatch;
@@ -34,7 +35,7 @@ public class AdmitPatient extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admit_patient);
-        setupBaseActivityNavbar("R", "Admit Patient");
+        setupBaseActivityNavbar("R", "Receptionist");
         setupBaseActivityFooter("rolebased", "R");
 
         db = FirebaseFirestore.getInstance();
@@ -134,17 +135,17 @@ public class AdmitPatient extends BaseActivity {
         admissionTreatment.hospital_id = hospitalId;
         admissionTreatment.room_id = selectedRoom.room_id;
         admissionTreatment.room_no = selectedRoom.room_no;
-        admissionTreatment.type = TreatmentType.MEDICATION.getDisplayName();
+        admissionTreatment.type = TreatmentType.MEDICATION.name();
         admissionTreatment.status = "ONGOING";
         admissionTreatment.setTimestamp(Timestamp.now());
 
         // Create a reference for the new treatment to link it with the bill
-        com.google.firebase.firestore.DocumentReference treatmentRef = db.collection("hospitals")
+        DocumentReference treatmentRef = db.collection("hospitals")
                 .document(hospitalId).collection("treatments").document();
         batch.set(treatmentRef, admissionTreatment);
 
         // 2. Initialize New Bill for this Admission
-        Bill initialBill = new com.example.medsync.model.Bill();
+        Bill initialBill = new Bill();
         initialBill.patient_id = patientId;
         initialBill.hospital_id = hospitalId;
         initialBill.treatment_id = treatmentRef.getId();
@@ -161,7 +162,7 @@ public class AdmitPatient extends BaseActivity {
                 "room_id", selectedRoom.room_id,
                 "room_no", selectedRoom.room_no,
                 "doctor_id", admissionTreatment.examiner_id,
-                "admittedOn", dateNow);
+                "admittedOn", Timestamp.now());
 
         // 4. Update Room Document
         batch.update(db.collection("hospitals").document(hospitalId).collection("rooms").document(selectedRoom.room_id),

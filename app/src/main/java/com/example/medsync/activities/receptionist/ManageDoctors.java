@@ -32,7 +32,7 @@ public class ManageDoctors extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_doctors);
 
-        setupBaseActivityNavbar("R", "Manage Doctors");
+        setupBaseActivityNavbar("R", "Receptionist");
         setupBaseActivityFooter("home", "R");
 
         db = FirebaseFirestore.getInstance();
@@ -46,6 +46,7 @@ public class ManageDoctors extends BaseActivity {
 
         fetchDoctors();
     }
+
 
     private void fetchDoctors() {
         db.collection("doctors")
@@ -61,7 +62,7 @@ public class ManageDoctors extends BaseActivity {
                         Doctor d = doc.toObject(Doctor.class);
                         if (d != null) {
                             d.setId(doc.getId());
-                            String spec = d.specialization != null ? d.specialization : SpecializationType.GENERAL_PHYSICIAN.getDisplayName();
+                            String spec = d.specialization != null ? SpecializationType.valueOf(d.specialization).getDisplayName() : SpecializationType.GENERAL_PHYSICIAN.getDisplayName();
                             if (!doctorGroups.containsKey(spec)) doctorGroups.put(spec, new ArrayList<>());
                             doctorGroups.get(spec).add(d);
                         }

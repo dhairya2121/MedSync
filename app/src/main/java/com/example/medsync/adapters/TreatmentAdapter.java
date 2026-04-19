@@ -66,26 +66,16 @@ public class TreatmentAdapter extends RecyclerView.Adapter<TreatmentAdapter.Trea
 
         // 2. Date Formatting
         // Create the requested format: "dd-MMM-yyyy, hh:mm a"
+        // 2. Date Formatting
+        // Create the requested format: "dd-MMM-yyyy, hh:mm a"
         SimpleDateFormat displayFormat = new SimpleDateFormat("dd-MMM-yyyy, hh:mm a", Locale.getDefault());
 
-        if (t.getTimestamp() != null) {
-            // BEST WAY: Use the Firestore Timestamp directly
+        if (t.start != null) {
+            // ✅ BEST WAY: Use the 'start' Timestamp directly (merged Date + Time)
+            holder.tvDate.setText(displayFormat.format(t.start.toDate()));
+        } else if (t.getTimestamp() != null) {
+            // FALLBACK: Use the creation timestamp if 'start' is somehow missing
             holder.tvDate.setText(displayFormat.format(t.getTimestamp().toDate()));
-        } else if (t.start != null) {
-            // FALLBACK: Try to parse the 'start' string if timestamp is missing
-            try {
-                // Assuming t.start might be in ISO format "yyyy-MM-dd'T'HH:mm:ss"
-                SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-                Date date = parser.parse(t.start);
-                if (date != null) {
-                    holder.tvDate.setText(displayFormat.format(date));
-                } else {
-                    holder.tvDate.setText(t.start);
-                }
-            } catch (Exception e) {
-                // If it's not an ISO string (e.g., just "09:00 AM"), show it as is
-                holder.tvDate.setText(t.start);
-            }
         } else {
             holder.tvDate.setText("Date not set");
         }

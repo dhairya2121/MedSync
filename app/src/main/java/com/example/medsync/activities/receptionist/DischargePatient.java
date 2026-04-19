@@ -24,7 +24,7 @@ import java.util.Map;
 public class DischargePatient extends BaseActivity {
 
     private FirebaseFirestore db;
-    private String patientId, hospitalId;
+    private String patientId, hospitalId,treatmentId;
     private Bill currentBill;
     private Patient patient;
     private EditText etName, etAmount;
@@ -37,8 +37,8 @@ public class DischargePatient extends BaseActivity {
         db = FirebaseFirestore.getInstance();
         patientId = getIntent().getStringExtra("patient_id");
         hospitalId = getSharedPreferences("medsync_prefs", MODE_PRIVATE).getString("hospital_id", null);
-
-        setupBaseActivityNavbar("R", "Discharge");
+        treatmentId=getIntent().getStringExtra("treatment_id");
+        setupBaseActivityNavbar("R", "Receptionist");
         setupBaseActivityFooter("home", "R");
 
         initUI();
@@ -87,7 +87,8 @@ public class DischargePatient extends BaseActivity {
             currentBill.items.put(name, amount);
             currentBill.calculateTotal();
 
-            db.collection("hospitals").document(hospitalId).collection("bills")
+            db.collection("hospitals").document(hospitalId)
+                    .collection("bills")
                     .document(currentBill.id).set(currentBill)
                     .addOnSuccessListener(a -> {
                         etName.setText("");
@@ -107,12 +108,17 @@ public class DischargePatient extends BaseActivity {
     }
 
     private void fetchBill() {
-        db.collection("hospitals").document(hospitalId).collection("bills")
-                .whereEqualTo("patient_id", patientId)
-                .addSnapshotListener((snapshots, e) -> {
-                    if (snapshots != null && !snapshots.isEmpty()) {
-                        currentBill = snapshots.getDocuments().get(0).toObject(Bill.class);
-                        currentBill.id = snapshots.getDocuments().get(0).getId();
+        if(treatmentId==null){
+            Toast.makeText(this, "Bill Not Found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        db.collection("hospitals").document(hospitalId)
+                .collection("bills")
+                .document(treatmentId)
+                .addSnapshotListener((snapshot, e) -> {
+                    if (snapshot.exists()) {
+                        currentBill = snapshot.toObject(Bill.class);
+                        currentBill.id = snapshot.getId();
                         updateBillUI();
                     }
                 });
@@ -140,7 +146,7 @@ public class DischargePatient extends BaseActivity {
         WriteBatch batch = db.batch();
 
         // 1. Bill update
-        currentBill.status = "PAID";
+//        currentBill.status = "PAID";
         currentBill.generated_at = Timestamp.now();
         batch.set(db.collection("hospitals").document(hospitalId).collection("bills").document(currentBill.id), currentBill);
 
@@ -151,7 +157,7 @@ public class DischargePatient extends BaseActivity {
         }
 
         // 3. Patient status
-        batch.update(db.collection("patients").document(patientId), "isAdmitted", false, "status", "DISCHARGED");
+        batch.update(db.collection("patients").document(patientId), "isAdmitted", false);
 
         batch.commit().addOnSuccessListener(aVoid -> {
             Toast.makeText(this, "Discharged Successfully", Toast.LENGTH_SHORT).show();

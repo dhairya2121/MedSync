@@ -130,10 +130,14 @@ public class ManagePatients extends BaseActivity {
             }
 
             fullFetchedList.clear();
+            fullFetchedList.clear();
             if (snapshots != null) {
-                fullFetchedList.addAll(snapshots.toObjects(Patient.class));
+                for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snapshots) {
+                    Patient p = doc.toObject(Patient.class);
+                    p.setId(doc.getId());
+                    fullFetchedList.add(p);
+                }
             }
-
             // After fetch, apply the current filter state client-side
             applyFilterAndRefresh();
         });

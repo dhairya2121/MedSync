@@ -166,6 +166,7 @@ public class Dashboard extends BaseActivity {
         db.collection("hospitals").document(currentHospitalId)
                 .collection("treatments")
                 .whereIn(FieldPath.documentId(), treatmentIds)
+                .whereEqualTo("status","UPCOMING")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> patientIds = new ArrayList<>();
@@ -204,7 +205,7 @@ public class Dashboard extends BaseActivity {
                     } else {
                         tvNoAppointments.setVisibility(View.GONE);
                         patientAdapter.notifyDataSetChanged();
-                        Toast.makeText(this, "Appointments Loaded", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(this, "Appointments Loaded", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

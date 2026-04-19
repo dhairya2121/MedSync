@@ -130,7 +130,7 @@ public class Dashboard extends BaseActivity {
                 .addSnapshotListener((s, e) -> { if (s != null) tvPatientCount.setText(String.valueOf(s.size())); }));
 
         // Caretakers (Note: CollectionGroup requires a Firestore Index to be created via the link in Logcat)
-        subListeners.add(db.collectionGroup("careTakers").whereEqualTo("hospital_id", hospitalId)
+        subListeners.add(db.collection("careTakers").whereEqualTo("hospital_id", hospitalId)
                 .addSnapshotListener((s, e) -> { if (s != null) tvCareTakersCount.setText(String.valueOf(s.size())); }));
 
         // Assistants
@@ -168,10 +168,10 @@ public class Dashboard extends BaseActivity {
 
         // 1. Appointments Count
         TextView tvAppointmentCount = appointmentsSection.findViewById(R.id.appointment_count);
-        subListeners.add(db.collection("hospitals").document(hospitalId).collection("treatments")
+        subListeners.add(db.collection("hospitals").document(hospitalId)
+                .collection("treatments")
                 .whereEqualTo("type", TreatmentType.APPOINTMENT.name())
                 .whereGreaterThanOrEqualTo("start", startOfTodayStr)
-                .whereLessThanOrEqualTo("start", endOfTodayStr)
                 .addSnapshotListener((s, e) -> {
                     if (s != null && tvAppointmentCount != null) {
                         tvAppointmentCount.setText(String.valueOf(s.size()));
@@ -181,8 +181,8 @@ public class Dashboard extends BaseActivity {
         // 2. Currently Admitted Count
         TextView tvAdmittedCount = admittedSection.findViewById(R.id.admitted_count);
         subListeners.add(db.collection("patients")
-                .whereEqualTo("hospital_id", hospitalId)
                 .whereEqualTo("isAdmitted", true)
+                .whereEqualTo("hospital_id", hospitalId)
                 .addSnapshotListener((s, e) -> {
                     if (s != null && tvAdmittedCount != null) tvAdmittedCount.setText(String.valueOf(s.size()));
                 }));
@@ -190,13 +190,13 @@ public class Dashboard extends BaseActivity {
         // 3. Daily Operations Count
         List<String> types = new ArrayList<>();
         types.add(TreatmentType.OPERATION.name());
-        types.add(TreatmentType.CHECKUP.name());
         types.add(TreatmentType.TEST.name());
         types.add(TreatmentType.EMERGENCY.name());
         types.add(TreatmentType.THERAPY.name());
 
         TextView tvOperationsCount = operationsSection.findViewById(R.id.operations_count);
-        subListeners.add(db.collection("hospitals").document(hospitalId).collection("treatments")
+        subListeners.add(db.collection("hospitals").document(hospitalId)
+                .collection("treatments")
                 .whereIn("type", types)
                 .whereGreaterThanOrEqualTo("start", startOfTodayStr)
                 .whereLessThanOrEqualTo("start", endOfTodayStr)

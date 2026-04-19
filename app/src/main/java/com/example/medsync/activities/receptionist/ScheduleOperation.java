@@ -11,6 +11,7 @@ import com.example.medsync.model.Treatment;
 import com.example.medsync.utils.BaseActivity;
 import com.example.medsync.utils.ViewUtils;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class ScheduleOperation extends BaseActivity {
         treatment.patient_id = getIntent().getStringExtra("PATIENT_ID");
         treatment.patient_name = getIntent().getStringExtra("PATIENT_NAME");
         treatment.examiner_name = getIntent().getStringExtra("DOCTOR_NAME");
-
+        treatment.examiner_id=getIntent().getStringExtra("DOCTOR_ID");
         initUI();
     }
 
@@ -61,13 +62,12 @@ public class ScheduleOperation extends BaseActivity {
         ViewUtils.setupEditableInfoCard(this, cardRoom, R.drawable.ic_landline, "Room No", "Select Room", val -> {});
         cardRoom.findViewById(R.id.btn_edit).setOnClickListener(v -> fetchAndShowVacantRooms(cardRoom));
 
-        // 3. Time Pickers
-        ViewUtils.setupEditableInfoCard(this, cardStart, R.drawable.ic_clock, "Start Time", "00:00", val -> {});
-        cardStart.findViewById(R.id.btn_edit).setOnClickListener(v -> showTimePicker(cardStart, true));
+        // 3. Date & Time Pickers
+        ViewUtils.setupEditableInfoCard(this, cardStart, R.drawable.ic_clock, "Start Time", "Select Date & Time", val -> {});
+        cardStart.findViewById(R.id.btn_edit).setOnClickListener(v -> showDateTimePicker(cardStart, true));
 
-        ViewUtils.setupEditableInfoCard(this, cardEnd, R.drawable.ic_clock, "End Time", "00:00", val -> {});
-        cardEnd.findViewById(R.id.btn_edit).setOnClickListener(v -> showTimePicker(cardEnd, false));
-
+        ViewUtils.setupEditableInfoCard(this, cardEnd, R.drawable.ic_clock, "End Time", "Select Date & Time", val -> {});
+        cardEnd.findViewById(R.id.btn_edit).setOnClickListener(v -> showDateTimePicker(cardEnd, false));
         findViewById(R.id.btn_save_operation).setOnClickListener(v -> saveToFirestore());
     }
 
@@ -124,30 +124,111 @@ public class ScheduleOperation extends BaseActivity {
         }).show();
     }
 
-    private void showTimePicker(View card, boolean isStart) {
-        Calendar c = Calendar.getInstance();
-        new TimePickerDialog(this, (view, hour, minute) -> {
-            String time = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
-            ((TextView) card.findViewById(R.id.edit_text_input)).setText(time);
-            if (isStart) treatment.start = time; else treatment.end = time;
-        }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true).show();
+    private void showDateTimePicker(View card, boolean isStart) {
+        Calendar currentCalendar = Calendar.getInstance();
+
+        // 1. Pick the Date
+        new android.app.DatePickerDialog(this, (datePicker, year, month, day) -> {
+            Calendar selectedCalendar = Calendar.getInstance();
+            selectedCalendar.set(Calendar.YEAR, year);
+            selectedCalendar.set(Calendar.MONTH, month);
+            selectedCalendar.set(Calendar.DAY_OF_MONTH, day);
+
+            // 2. Pick the Time
+            new TimePickerDialog(this, (timePicker, hour, minute) -> {
+                selectedCalendar.set(Calendar.HOUR_OF_DAY, hour);
+                selectedCalendar.set(Calendar.MINUTE, minute);
+                selectedCalendar.set(Calendar.SECOND, 0);
+                selectedCalendar.set(Calendar.MILLISECOND, 0);
+
+                // 3. Create the Timestamp
+                Timestamp resultTimestamp = new Timestamp(selectedCalendar.getTime());
+
+                // 4. Update Model
+                if (isStart) {
+                    treatment.start = resultTimestamp;
+                } else {
+                    treatment.end = resultTimestamp;
+                }
+
+                // 5. Update UI Display (Format: 19-Apr-2024, 10:30 AM)
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MMM-yyyy, hh:mm a", Locale.getDefault());
+                String displayString = sdf.format(selectedCalendar.getTime());
+                ((TextView) card.findViewById(R.id.edit_text_input)).setText(displayString);
+
+            }, currentCalendar.get(Calendar.HOUR_OF_DAY), currentCalendar.get(Calendar.MINUTE), false).show();
+
+        }, currentCalendar.get(Calendar.YEAR), currentCalendar.get(Calendar.MONTH), currentCalendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     private void saveToFirestore() {
-        if (treatment.type == null || treatment.room_no == 0 || treatment.start == null) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+        if (treatment.type == null || treatment.room_no == 0 || treatment.start == null || treatment.end == null) {
+            Toast.makeText(this, "Please fill all fields, including End Time", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // 1. Generate the list of 30-minute slots required for this operation
+        List<Timestamp> requiredSlots = new ArrayList<>();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(treatment.start.toDate());
+
+        // Standardize: clear seconds/millis for comparison
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        while (cal.getTime().before(treatment.end.toDate())) {
+            requiredSlots.add(new Timestamp(cal.getTime()));
+            cal.add(Calendar.MINUTE, 30);
+        }
+
+        // 2. Check Doctor's availability
+        db.collection("doctors").document(treatment.examiner_id).get().addOnSuccessListener(doc -> {
+            if (doc.exists()) {
+                com.example.medsync.model.Doctor doctor = doc.toObject(com.example.medsync.model.Doctor.class);
+
+                if (doctor != null && doctor.booked_slots != null) {
+                    for (com.example.medsync.model.BookedSlot booked : doctor.booked_slots) {
+                        for (Timestamp req : requiredSlots) {
+                            // Compare seconds to avoid nanosecond mismatch
+                            if (booked.start.getSeconds() == req.getSeconds()) {
+                                Toast.makeText(this, "Doctor is already busy at " +
+                                                new java.text.SimpleDateFormat("hh:mm a", Locale.US).format(req.toDate()),
+                                        Toast.LENGTH_LONG).show();
+                                return; // EXIT: Slot is taken
+                            }
+                        }
+                    }
+                }
+
+                // 3. If code reaches here, doctor is FREE. Proceed to save.
+                performFinalSave(requiredSlots);
+            }
+        }).addOnFailureListener(e -> Toast.makeText(this, "Scheduling failed", Toast.LENGTH_SHORT).show());
+    }
+
+    private void performFinalSave(List<Timestamp> requiredSlots) {
         treatment.hospital_id = hospitalId;
-        treatment.status = "SCHEDULED";
+        treatment.status = "UPCOMING";
         treatment.setTimestamp(Timestamp.now());
 
+        // A. Add the treatment record
         db.collection("hospitals").document(hospitalId).collection("treatments")
                 .add(treatment)
                 .addOnSuccessListener(ref -> {
-                    Toast.makeText(this, "Operation Scheduled", Toast.LENGTH_SHORT).show();
-                    finish();
+                    String treatmentId = ref.getId();
+
+                    // B. Link all booked blocks to this treatment ID in doctor's profile
+                    List<com.example.medsync.model.BookedSlot> bookedSlotsToUpdate = new ArrayList<>();
+                    for (Timestamp ts : requiredSlots) {
+                        bookedSlotsToUpdate.add(new com.example.medsync.model.BookedSlot(ts, treatmentId));
+                    }
+
+                    db.collection("doctors").document(treatment.examiner_id)
+                            .update("booked_slots", FieldValue.arrayUnion(bookedSlotsToUpdate.toArray()))
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "Operation Scheduled Successfully", Toast.LENGTH_SHORT).show();
+                                finish();
+                            });
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }

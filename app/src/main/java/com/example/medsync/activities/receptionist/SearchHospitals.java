@@ -1,6 +1,7 @@
 package com.example.medsync.activities.receptionist;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -100,7 +101,10 @@ public class SearchHospitals extends BaseActivity {
         db.collection("receptionists").document(uid)
                 .update("hospital_id", hospitalId)
                 .addOnSuccessListener(aVoid -> {
-                    // 4. Navigate to Hospital Activity
+                    SharedPreferences sharedPreferences = getSharedPreferences("medsync_prefs", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("hospital_id", hospitalId);
+                    editor.apply();
                     Intent intent = new Intent(this, Hospital.class);
                     startActivity(intent);
                     finish();
