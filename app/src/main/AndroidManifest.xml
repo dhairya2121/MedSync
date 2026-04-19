@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MedSync">
         <activity
+            android:name=".utils.EmergencySearchUsers"
+            android:exported="false" />
+        <activity
             android:name=".utils.BaseSearchHospitalsActivity"
             android:exported="false" />
         <activity
